@@ -7,8 +7,8 @@ Every word is generated. Same preset + same seed + same version gives byte-ident
 ## Install
 
 ```bash
-npm i -D github:vantt/obsidian-test-fixture#v0.3.0
-npx github:vantt/obsidian-test-fixture#v0.3.0 generate --preset personal-vault --seed 7 --out ./vault
+npm i -D github:vantt/obsidian-test-fixture#v0.4.0
+npx github:vantt/obsidian-test-fixture#v0.4.0 generate --preset personal-vault --seed 7 --out ./vault
 ```
 
 Not published on the npm registry. Pin a tag.
@@ -90,7 +90,12 @@ Typed edges are frontmatter keys holding quoted wikilinks (`uses: ["[[Webflow]]"
 | Planted errors | one per schema rule R2-R10 (12 in all), and no other error at any size |
 | Procedural clients | people, contact changes, projects (some linked by alias), contracts and renewals, meetings, decisions, and two factors per client wired into the causal model (two more loops per client) |
 
-`.kg-answers.json` holds `schema` (types, edges with domain, range, inverse, polarity; fact relations; claim fields; rules R1-R10), `stats` (notes and edges by type and relation), and `cases`: about 40 hand-designed questions in Vietnamese, tagged with the problem they test (`bt`: BT1 browsing, BT2 multi-hop, BT3 answering, BT4 identity, BT5 types, BT6 typed relations, BT7 evidence, BT8 causality, BT9 time, BT10 navigation, BT11 schema, BT12 LLM proposals), plus a few cases per procedural client and scale cases (all loops, multi-step upstream). Each case has `question`, `query` (or `queries`) and `expect`. Query ops (`lib/kg.mjs`): `neighbors`, `reach`, `paths` (with net sign), `cycles` (reinforcing or balancing), `chain` (steps with their own dates), `provenance`, `valid`, `select`, `resolve`, `field`, `mentions`, `collisions`, `validate`. `asOf` filters by validity window; claim edges count when `accepted` or `superseded` unless `statuses` says otherwise; links resolve by title, then alias.
+`.kg-answers.json` holds `schema` (types, edges with domain, range, inverse, polarity; fact relations; claim fields; rules R1-R10), `stats` (notes and edges by type and relation), and `cases`: 45 hand-designed questions in Vietnamese, tagged with the problem they test (`bt`: BT1 browsing, BT2 multi-hop, BT3 answering, BT4 identity, BT5 types, BT6 typed relations, BT7 evidence, BT8 causality, BT9 time, BT10 navigation, BT11 schema, BT12 LLM proposals), plus a few cases per procedural client and scale cases (all loops, multi-step upstream). Each case has `question`, `query` (or `queries`), `expect`, and two tags:
+
+- `mode`, how a person gets to it: `navigate` (step through views), `search` (type a few words, get a report page), `ask` (question to an agent), `push` (the system brings it up), `write` (suggestion while writing a note);
+- `strategy`, how an agent should answer: `resolve` (find the note from what was typed first; several hits mean ask back, see `behavior`), `one-shot` (the query is known up front: one or a few fixed tool calls), `explore` (the path is not known up front: walk the graph step by step; `query` is only the reference for grading, `budget` caps tool calls).
+
+Query ops (`lib/kg.mjs`): `neighbors`, `reach`, `paths` (with net sign), `cycles` (reinforcing or balancing), `chain` (steps with their own dates), `provenance`, `valid`, `select`, `find` (word match ignoring case and diacritics, over titles and aliases), `resolve`, `field`, `mentions`, `collisions`, `validate`. `asOf` filters by validity window; claim edges count when `accepted` or `superseded` unless `statuses` says otherwise; links resolve by title, then alias.
 
 Every `expect` is computed by `lib/kg.mjs` over the written files; `test/kg.test.mjs` pins the hand-designed answers by hand at two sizes.
 

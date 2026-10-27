@@ -2,6 +2,11 @@
 
 Any change to generated output is a breaking change and needs a new minor version here, because downstream answer keys depend on it.
 
+## 0.4.0
+- `kg-solo` cases carry `mode` (navigate, search, ask, push, write) and `strategy` (resolve, one-shot, explore); explore cases carry a tool-call `budget`, ambiguous lookups a `behavior` (clarify, merge-aware).
+- Seven new cases: a search report page, lookups without diacritics, an ambiguous person, a duplicate client, a suggestion while writing, two explore questions. The answer key changes, so the `kg-solo` tree hash changes.
+- New query op `find`.
+
 ## 0.3.0
 - `personal-vault --answers-out <file>` (library option `answersOut`): writes the S6 answer key (the full marker JSON as before, `{about, generator, seed, s6}`) to a file outside the vault. The marker keeps its name and holds only `{synthetic, generator, seed}`, so an agent that lists or reads the vault cannot see the key. Refused if the file is inside `--out`. The manifest records `answersOut: true`, never the path.
 - Without the option, generated trees, marker and manifest options are unchanged (parity tests).

@@ -46,6 +46,13 @@ const HAND = {
   'identity-alias-edges': [nb('has_project', 'Dự án/Dashboard doanh thu ABC.md'), nb('has_project', 'Dự án/Website ABC 2025.md')],
   'identity-collisions': [['Khách hàng/Cua hang Moc.md', 'Khách hàng/Cửa hàng Mộc.md'], ['Người/Nguyễn Văn An.md', 'Người/Nguyễn Văn Ân.md']],
   'types-wrong-cause': ['concept', [nb('increases', F('Mức kiệt sức'))]],
+  'search-client-report': [['Khách hàng/Công ty ABC.md'], [nb('contact', 'Người/Trần Thị Bình.md')], [nb('has_contract', 'Hợp đồng/HĐ ABC 2026.md')], [nb('has_project', 'Dự án/Dashboard doanh thu ABC.md'), nb('has_project', 'Dự án/Website ABC 2025.md')]],
+  'resolve-no-diacritics': ['Khách hàng/Công ty ABC.md'],
+  'resolve-ambiguous-person': ['Người/Nguyễn Văn An.md', 'Người/Nguyễn Văn Ân.md'],
+  'resolve-duplicate-org': ['Khách hàng/Cua hang Moc.md', 'Khách hàng/Cửa hàng Mộc.md'],
+  'write-suggest-existing': ['Khách hàng/Cửa hàng Mộc.md'],
+  'explore-renewal-drivers': [F('Chất lượng bàn giao'), F('Khối lượng việc'), F('Mức hài lòng khách hàng'), F('Mức kiệt sức'), F('Thời gian phản hồi khách')],
+  'explore-sleep-effects': [{ nodes: [F('Giờ ngủ'), F('Mức kiệt sức'), F('Thời gian phản hồi khách'), F('Mức hài lòng khách hàng'), F('Tỷ lệ gia hạn hợp đồng'), F('Số dự án song song')], rels: ['decreases', 'increases', 'decreases', 'increases', 'increases'], sign: '+' }],
   'relations-inverse': [nb('used_by', 'Dự án/Dashboard doanh thu ABC.md')],
   'relations-symmetric': [nb('related', 'Công cụ/Webflow.md')],
   'relations-part-of': [nb('has_part', 'Dự án/Landing page Tết Mộc.md')],
@@ -90,6 +97,15 @@ for (const [name, v] of [['core', core], ['120 clients', big]]) {
 test('every BT1-BT12 has at least two cases, every case has a question', () => {
   for (let k = 1; k <= 12; k++) assert.ok(core.key.cases.filter((c) => c.bt === `BT${k}`).length >= (k === 11 ? 1 : 2), `BT${k}`);
   assert.ok(core.key.cases.every((c) => c.question && (c.query || c.queries)));
+});
+
+test('every case has a mode and a strategy; explore cases carry a tool budget', () => {
+  const modes = new Set(['navigate', 'search', 'ask', 'push', 'write']), strategies = new Set(['resolve', 'one-shot', 'explore']);
+  for (const c of big.key.cases) {
+    assert.ok(modes.has(c.mode) && strategies.has(c.strategy), c.id);
+    if (c.strategy === 'explore') assert.ok(c.budget > 0, c.id);
+  }
+  for (const s of strategies) assert.ok(core.key.cases.filter((c) => c.strategy === s).length >= 3, s);
 });
 
 test('mentions: core notes plus daily notes, alias links included', () => {

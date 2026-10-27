@@ -304,7 +304,11 @@ export function build({ seed = 11, clients = 30, days = 365, answers = options.a
   const kg = loadKg(files, schema);
   const P = (t) => titleTo.get(t);
   const cases = coreCases(P).concat(proceduralCases(P, orgs.slice(0, 8), kg));
-  for (const c of cases) c.expect = c.query ? runQuery(kg, c.query) : c.queries.map((q) => runQuery(kg, q));
+  for (const c of cases) {
+    const [mode, strategy] = MODES[c.id] || MODES[c.id.split(':')[0]];
+    Object.assign(c, { mode, strategy });
+    c.expect = c.query ? runQuery(kg, c.query) : c.queries.map((q) => runQuery(kg, q));
+  }
   files.set(answers, JSON.stringify({
     about: 'Answer key for the kg-solo preset of obsidian-test-fixture. Every expect is what lib/kg.mjs computes over the files; dates compare as ISO strings, validity windows are inclusive.',
     generator: { preset: name, seed, clients, days },
@@ -312,6 +316,35 @@ export function build({ seed = 11, clients = 30, days = 365, answers = options.a
   }, null, 1) + '\n');
   return files;
 }
+
+// How a person reaches each case (`mode`) and how an agent should answer it (`strategy`); see
+// obsidian-pkm-automation docs/knowledge-graph/usage.md.
+//   mode: navigate (step through views), search (type a few words, get a report page), ask (question to an agent),
+//         push (the system brings it up), write (suggestion while writing a note)
+//   strategy: resolve (find the note from what was typed first), one-shot (the query is known up front, one or a
+//         few fixed tool calls), explore (the path is not known up front: the agent walks the graph step by step;
+//         `query` is only the reference used to grade, `budget` caps tool calls)
+const MODES = {
+  'browse-local-view': ['navigate', 'one-shot'], 'browse-moc-trail': ['navigate', 'one-shot'], 'browse-mentions': ['navigate', 'one-shot'],
+  'multihop-conditions-downstream': ['ask', 'one-shot'], 'multihop-conditions-downstream-2025': ['ask', 'one-shot'],
+  'multihop-path-polarity': ['ask', 'one-shot'], 'multihop-path-overload': ['ask', 'one-shot'], 'multihop-loops': ['ask', 'one-shot'],
+  'multihop-moved-people': ['ask', 'explore'],
+  'answer-contract-expiry': ['ask', 'one-shot'], 'answer-none-contract': ['ask', 'one-shot'], 'answer-none-active': ['ask', 'one-shot'], 'answer-why-churn': ['ask', 'explore'],
+  'identity-alias': ['search', 'resolve'], 'identity-alias-edges': ['search', 'one-shot'], 'identity-collisions': ['push', 'one-shot'],
+  'types-wrong-cause': ['ask', 'one-shot'], 'types-tools': ['navigate', 'one-shot'],
+  'relations-inverse': ['ask', 'one-shot'], 'relations-symmetric': ['navigate', 'one-shot'], 'relations-part-of': ['navigate', 'one-shot'],
+  'evidence-provenance': ['ask', 'one-shot'], 'evidence-disputed': ['ask', 'explore'],
+  'causal-direct-causes': ['ask', 'one-shot'], 'causal-correlation-only': ['ask', 'one-shot'], 'causal-pending-upgrade': ['push', 'one-shot'],
+  'time-contact-now': ['search', 'one-shot'], 'time-contact-then': ['ask', 'one-shot'], 'time-contact-boundary': ['ask', 'one-shot'],
+  'time-price-now': ['search', 'one-shot'], 'time-decisions-2025': ['ask', 'one-shot'], 'time-decisions-now': ['search', 'one-shot'], 'time-contract-2025': ['ask', 'one-shot'],
+  'nav-up-not-moc': ['navigate', 'one-shot'], 'nav-moc-children': ['navigate', 'one-shot'],
+  'schema-validate': ['push', 'one-shot'], 'llm-pending': ['push', 'one-shot'], 'llm-created': ['push', 'one-shot'],
+  'search-client-report': ['search', 'resolve'], 'resolve-no-diacritics': ['ask', 'resolve'], 'resolve-ambiguous-person': ['ask', 'resolve'],
+  'resolve-duplicate-org': ['ask', 'resolve'], 'write-suggest-existing': ['write', 'resolve'],
+  'explore-renewal-drivers': ['ask', 'explore'], 'explore-sleep-effects': ['ask', 'explore'],
+  'gen-contact-now': ['search', 'one-shot'], 'gen-contact-2025': ['ask', 'one-shot'], 'gen-projects': ['search', 'one-shot'], 'gen-contract-now': ['search', 'one-shot'],
+  'gen-tool-users': ['ask', 'one-shot'], 'gen-loops-all': ['ask', 'one-shot'], 'gen-revenue-upstream': ['ask', 'explore'],
+};
 
 // Hand-designed cases over the core story. Ids are stable across seeds and sizes; test/kg.test.mjs pins each
 // expect by hand. `bt` is the problem number in obsidian-pkm-automation docs/knowledge-graph/README.md.
@@ -327,11 +360,11 @@ function coreCases(P) {
     { id: 'multihop-path-polarity', bt: 'BT2', question: 'Thanh toán trước 50% ảnh hưởng tới số lead mới qua đường nào, theo chiều nào?', query: { op: 'paths', from: P('Thanh toán trước 50%'), to: P('Số lead mới'), rels: causal, maxLen: 6 } },
     { id: 'multihop-path-overload', bt: 'BT2', question: 'Vì sao nhận thêm dự án làm chất lượng bàn giao giảm?', query: { op: 'paths', from: P('Số dự án song song'), to: P('Chất lượng bàn giao'), rels: causal, maxLen: 4 } },
     { id: 'multihop-loops', bt: 'BT2', question: 'Trong mô hình kinh doanh có những vòng nào, vòng nào tự tăng cường, vòng nào cân bằng?', query: { op: 'cycles', rels: causal, maxLen: 7 } },
-    { id: 'multihop-moved-people', bt: 'BT2', question: 'Người làm ở ABC đầu năm 2025 nay làm ở khách hàng nào khác?', query: { op: 'chain', start: P('Công ty ABC'), steps: [{ rel: 'works_at', dir: 'in', asOf: '2025-01-01' }, { rel: 'works_at', dir: 'out', asOf: T }] } },
+    { id: 'multihop-moved-people', budget: 6, bt: 'BT2', question: 'Người làm ở ABC đầu năm 2025 nay làm ở khách hàng nào khác?', query: { op: 'chain', start: P('Công ty ABC'), steps: [{ rel: 'works_at', dir: 'in', asOf: '2025-01-01' }, { rel: 'works_at', dir: 'out', asOf: T }] } },
     { id: 'answer-contract-expiry', bt: 'BT3', question: 'Hợp đồng đang chạy với ABC hết hạn khi nào?', queries: [{ op: 'neighbors', node: P('Công ty ABC'), dir: 'in', rels: ['party'], asOf: T }, { op: 'field', node: P('HĐ ABC 2026'), key: 'valid_to' }] },
     { id: 'answer-none-contract', bt: 'BT3', question: 'Hợp đồng với Startup Lá Xanh hết hạn khi nào? (đúng là: không có hợp đồng)', none: true, query: { op: 'neighbors', node: P('Startup Lá Xanh'), dir: 'in', rels: ['party'] } },
     { id: 'answer-none-active', bt: 'BT3', question: 'Cửa hàng Mộc còn hợp đồng nào đang hiệu lực không? (đúng là: không, đã hết 2026-02-28)', none: true, query: { op: 'neighbors', node: P('Cửa hàng Mộc'), dir: 'in', rels: ['party'], asOf: T } },
-    { id: 'answer-why-churn', bt: 'BT3', question: 'Vì sao thiếu ngủ có thể làm mất khách gia hạn?', query: { op: 'paths', from: P('Giờ ngủ'), to: P('Tỷ lệ gia hạn hợp đồng'), rels: causal, maxLen: 5 } },
+    { id: 'answer-why-churn', budget: 10, bt: 'BT3', question: 'Vì sao thiếu ngủ có thể làm mất khách gia hạn?', query: { op: 'paths', from: P('Giờ ngủ'), to: P('Tỷ lệ gia hạn hợp đồng'), rels: causal, maxLen: 5 } },
     { id: 'identity-alias', bt: 'BT4', question: '"ABC Corp" là note nào?', query: { op: 'resolve', name: 'ABC Corp' } },
     { id: 'identity-alias-edges', bt: 'BT4', question: 'ABC có những dự án nào (kể cả dự án ghi khách hàng bằng alias)?', query: { op: 'neighbors', node: P('Công ty ABC'), dir: 'in', rels: ['client'] } },
     { id: 'identity-collisions', bt: 'BT4', question: 'Những note nào trùng tên sau khi bỏ dấu? Cặp nào là một, cặp nào là hai thứ khác nhau?', query: { op: 'collisions' }, labels: { [`${P('Cua hang Moc')}|${P('Cửa hàng Mộc')}`]: 'same: gộp', [`${P('Nguyễn Văn An')}|${P('Nguyễn Văn Ân')}`]: 'different: không gộp, đổi tên cho khác' } },
@@ -341,7 +374,7 @@ function coreCases(P) {
     { id: 'relations-symmetric', bt: 'BT6', question: 'Supabase liên quan tới gì? (related chỉ ghi ở Webflow)', query: { op: 'neighbors', node: P('Supabase'), dir: 'out', rels: ['related'] } },
     { id: 'relations-part-of', bt: 'BT6', question: 'Chiến dịch Tết Mộc gồm những phần nào?', query: { op: 'neighbors', node: P('Chiến dịch Tết Mộc'), dir: 'in', rels: ['part_of'] } },
     { id: 'evidence-provenance', bt: 'BT7', question: 'Khẳng định "thanh toán trước chặn nợ quá hạn" lấy từ đâu, đoạn nào?', query: { op: 'provenance', claim: P('Thanh toán trước chặn nợ quá hạn') } },
-    { id: 'evidence-disputed', bt: 'BT7', question: 'Khẳng định "giảm giá giữ chân khách cũ" có nguồn nào ủng hộ, nguồn nào phản bác?', query: { op: 'provenance', claim: P('Giảm giá giữ chân khách cũ') } },
+    { id: 'evidence-disputed', budget: 6, bt: 'BT7', question: 'Khẳng định "giảm giá giữ chân khách cũ" có nguồn nào ủng hộ, nguồn nào phản bác?', query: { op: 'provenance', claim: P('Giảm giá giữ chân khách cũ') } },
     { id: 'causal-direct-causes', bt: 'BT8', question: 'Cái gì trực tiếp làm tăng số lead mới? (tương quan không tính)', query: { op: 'neighbors', node: P('Số lead mới'), dir: 'in', rels: ['increases', 'conditions'] } },
     { id: 'causal-correlation-only', bt: 'BT8', question: 'LinkedIn và số lead: quan hệ đã được chấp nhận ở bậc nào?', query: { op: 'neighbors', node: P('Số lead mới'), rels: ['correlates_with', 'increases', 'conditions'], dir: 'both' } },
     { id: 'causal-pending-upgrade', bt: 'BT8', question: 'Có đề xuất nào đang chờ nâng một quan hệ lên bậc điều kiện không?', query: { op: 'neighbors', node: P('Số lead mới'), dir: 'in', rels: ['conditions'], statuses: ['proposed'] } },
@@ -356,6 +389,13 @@ function coreCases(P) {
     { id: 'nav-moc-children', bt: 'BT10', question: 'MOC Kinh doanh có những MOC con nào?', query: { op: 'neighbors', node: P('MOC Kinh doanh'), dir: 'in', rels: ['parent_moc'] } },
     { id: 'schema-validate', bt: 'BT11', question: 'Vault vi phạm luật schema nào, ở note nào?', query: { op: 'validate' } },
     { id: 'llm-pending', bt: 'BT12', question: 'Đề xuất nào của LLM đang chờ người duyệt?', query: { op: 'select', where: { type: 'claim', status: 'proposed', proposed_by: 'llm' } } },
+    { id: 'search-client-report', bt: 'BT3', question: 'Gõ "abc": trang tổng hợp của khách hàng này (đầu mối hiện tại, hợp đồng đang chạy, dự án).', queries: [{ op: 'find', name: 'abc', type: 'organization' }, { op: 'neighbors', node: P('Công ty ABC'), dir: 'in', rels: ['contact_for'], asOf: T }, { op: 'neighbors', node: P('Công ty ABC'), dir: 'in', rels: ['party'], asOf: T }, { op: 'neighbors', node: P('Công ty ABC'), dir: 'in', rels: ['client'] }] },
+    { id: 'resolve-no-diacritics', bt: 'BT4', question: 'Gõ "cong ty abc" (không dấu): là note nào?', query: { op: 'find', name: 'cong ty abc' } },
+    { id: 'resolve-ambiguous-person', bt: 'BT4', question: 'Hỏi "anh nguyen van an ở công ty nào?": tên khớp hai người, phải hỏi lại chứ không chọn bừa.', behavior: 'clarify', query: { op: 'find', name: 'nguyen van an', type: 'person' } },
+    { id: 'resolve-duplicate-org', bt: 'BT4', question: 'Hỏi về "moc": hai note khách hàng khớp, thực ra là một (một bản do LLM tạo trùng).', behavior: 'merge-aware', query: { op: 'find', name: 'moc', type: 'organization' } },
+    { id: 'write-suggest-existing', bt: 'BT4', question: 'Đang viết note mới "Mộc Store": gợi ý note đã có thay vì tạo trùng.', query: { op: 'find', name: 'Mộc Store' } },
+    { id: 'explore-renewal-drivers', bt: 'BT2', question: 'Những gì ảnh hưởng tới tỷ lệ gia hạn hợp đồng, trực tiếp hay gián tiếp, chỉ tính quan hệ đã chấp nhận?', budget: 12, query: { op: 'reach', node: P('Tỷ lệ gia hạn hợp đồng'), dir: 'in', rels: ['increases', 'decreases', 'prevents'], maxDepth: 3 } },
+    { id: 'explore-sleep-effects', bt: 'BT8', question: 'Nếu ngủ ít đi thì việc kinh doanh bị ảnh hưởng thế nào, qua những bước nào?', budget: 12, query: { op: 'paths', from: P('Giờ ngủ'), to: P('Số dự án song song'), rels: ['increases', 'decreases', 'prevents'], maxLen: 6 } },
     { id: 'llm-created', bt: 'BT12', question: 'Note nào do LLM tạo hoặc sửa (cần xem lại)?', query: { op: 'select', where: { proposed_by: 'llm' } } },
   ];
 }
@@ -372,7 +412,7 @@ function proceduralCases(P, orgs, kg) {
   }
   for (const t of ['WordPress', 'Looker Studio', 'n8n']) out.push({ id: `gen-tool-users:${t}`, bt: 'BT6', question: `Dự án nào dùng ${t}?`, query: { op: 'neighbors', node: P(t), dir: 'in', rels: ['uses'] } });
   out.push({ id: 'gen-loops-all', bt: 'BT2', question: 'Mọi vòng nhân quả tới 10 bước (tăng theo số khách hàng).', query: { op: 'cycles', rels: ['increases', 'decreases', 'prevents'], maxLen: 10 } });
-  out.push({ id: 'gen-revenue-upstream', bt: 'BT2', question: 'Những gì (nhiều bước) làm tăng doanh thu định kỳ?', query: { op: 'reach', node: P('Doanh thu định kỳ'), dir: 'in', rels: ['increases'] } });
+  out.push({ id: 'gen-revenue-upstream', budget: 15, bt: 'BT2', question: 'Những gì (nhiều bước) làm tăng doanh thu định kỳ?', query: { op: 'reach', node: P('Doanh thu định kỳ'), dir: 'in', rels: ['increases'] } });
   void kg;
   return out;
 }
