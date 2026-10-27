@@ -7,10 +7,10 @@ Each entry: problem, decision, reason.
 - Decision: public repo, MIT license, package name `obsidian-test-fixture`, installed from GitHub tags only (no npm publish).
 - Reason: chosen by the owner up front. Tags give pinned versions without an npm token.
 
-## D2 `yaml` is an optional peer dependency
-- Problem: the source `gt.mjs yaml` command imports the `yaml` package, so "Node built-ins only" cannot hold for that one command.
-- Decision: `yaml` is an optional peer dependency, imported lazily by `truth yaml`. Without it the command exits 2 with an install hint. It is a devDependency here so parity tests run. Generation, every other truth command and `graph` need nothing.
-- Reason: keeps the install at zero runtime dependencies while keeping the output of `truth yaml` identical to `gt.mjs`.
+## D2 js-yaml is vendored (replaces the optional `yaml` peer, changed in 0.1.1)
+- Problem: the source `gt.mjs yaml` command imported the `yaml` package, so "Node built-ins only" could not hold for that command. 0.1.0 made it an optional peer dependency.
+- Decision: copy `js-yaml@4.1.0` (`dist/js-yaml.mjs`, MIT, license in `vendor/js-yaml.LICENSE`) into `vendor/` and call `load(text, { schema: CORE_SCHEMA })`. No dependencies at all.
+- Reason: `npx` works with nothing to install. The default js-yaml schema turns `2026-01-15` into a Date, which would change `truth yaml` output; `CORE_SCHEMA` has no timestamp type, so dates stay strings as before. Parity tests confirm identical output. Only the wording of parse-error messages differs. Update the copy by hand when js-yaml publishes a security fix.
 
 ## D3 Tree hash definition
 - Problem: "byte-identical" needs a checkable number, and the personal vault also has a `.git/` directory and a manifest.

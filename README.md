@@ -7,8 +7,8 @@ Every word is generated. Same preset + same seed + same version gives byte-ident
 ## Install
 
 ```bash
-npm i -D github:vantt/obsidian-test-fixture#v0.1.0
-npx github:vantt/obsidian-test-fixture#v0.1.0 generate --preset personal-vault --seed 7 --out ./vault
+npm i -D github:vantt/obsidian-test-fixture#v0.1.1
+npx github:vantt/obsidian-test-fixture#v0.1.1 generate --preset personal-vault --seed 7 --out ./vault
 ```
 
 Not published on the npm registry. Pin a tag.
@@ -30,7 +30,7 @@ otf presets
   - `backlinks <note>`: files linking to a note (with counts)
   - `unresolved [folder]`: wikilink targets that match nothing
   - `tags <tag> [folder]`: `#tag` in body (outside code) and in frontmatter
-  - `yaml <note>`: frontmatter keys and types (needs `npm i yaml`, optional)
+  - `yaml <note>`: frontmatter keys and types (vendored js-yaml, `CORE_SCHEMA`)
   - `crlf <note>`: line count and line-ending mix
 
 ## Library
@@ -72,7 +72,7 @@ Options: `--seed` (7), `--lab-dir` (`_agentkit-lab`), `--marker` (`.e8-synthetic
 `otf graph <vault>` prints:
 
 ```json
-{ "version": 1, "generator": {"preset": "hard-cases", "seed": 42, "otfVersion": "0.1.0"},
+{ "version": 1, "generator": {"preset": "hard-cases", "seed": 42, "otfVersion": "0.1.1"},
   "nodes": [{ "id": "refs/ref-heading.md", "title": "ref-heading", "aliases": [], "tags": [], "folder": "refs" }],
   "edges": [{ "from": "refs/ref-heading.md", "to": "Target Note.md", "kind": "heading", "target": "Target Note#Section A", "line": 1, "resolved": true }],
   "excluded": [{ "from": "refs/ref-code-block.md", "raw": "[[Target Note]]", "reason": "code-block", "line": 4 }],
