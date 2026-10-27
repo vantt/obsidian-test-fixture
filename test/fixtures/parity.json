@@ -1,0 +1,218 @@
+{
+ "hard-cases": {
+  "options": [],
+  "treeHash": "be68ac008829d904e59dc64ba1bc5e5655fe5189cb296abeb1dbfad4d95221dd",
+  "truth": [
+   {
+    "args": [
+     "tasks"
+    ],
+    "sha256": "b53caa9a1c8b5091d13d6b433a90fbf33507afa7c75ab87dda8bcaef2449298e",
+    "out": "{\n \"open\": 10,\n \"done\": 6,\n \"other\": 0,\n \"total\": 16,\n \"files\": 7\n}\n"
+   },
+   {
+    "args": [
+     "backlinks",
+     "Target Note.md"
+    ],
+    "sha256": "f4d19f2bd5305d2870c12da3c345615fa04c8a6f0a8814fee3cd84933294589e",
+    "out": "{\n \"target\": \"Target Note.md\",\n \"total\": 9,\n \"files\": [\n  {\n   \"file\": \"other folder/ref-other-folder.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"props/Property Note.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"refs/deeper/ref-markdown.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"refs/ref-alias-display.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"refs/ref-block.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"refs/ref-embed.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"refs/ref-heading.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"refs/ref-wikilink.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"tiếng việt/Ghi chú tiếng Việt.md\",\n   \"count\": 1\n  }\n ]\n}\n"
+   },
+   {
+    "args": [
+     "unresolved"
+    ],
+    "sha256": "8f567bfe68cc3648b30953b70b5633478896121c00bf50da55bfb9dd47b9362a",
+    "out": "{\n \"total\": 2,\n \"targets\": 2,\n \"links\": [\n  {\n   \"file\": \"refs/ref-alias-name.md\",\n   \"target\": \"TN Alias\"\n  },\n  {\n   \"file\": \"refs/ref-unresolved.md\",\n   \"target\": \"Missing Note Zeta\"\n  }\n ]\n}\n"
+   },
+   {
+    "args": [
+     "tags",
+     "proj"
+    ],
+    "sha256": "91f3fa5507b96f9bd1781b44d0247640ede77b9879857547a42e63655082fc70",
+    "out": "{\n \"tag\": \"proj\",\n \"body\": 2,\n \"frontmatter\": 2,\n \"bodyAt\": [\n  \"tags/tag-body.md:1\",\n  \"tiếng việt/Kế hoạch dự án.md:3\"\n ],\n \"frontmatterIn\": [\n  \"props/Property Note.md\",\n  \"tags/tag-frontmatter.md\"\n ]\n}\n"
+   },
+   {
+    "args": [
+     "yaml",
+     "props/Property Note.md"
+    ],
+    "sha256": "f73c2f861e07ad6f64705bb3bbfb7574ca746bed2a3378b58dd3f9b92ab8fcf1",
+    "out": "{\n \"valid\": true,\n \"keys\": {\n  \"title\": \"string\",\n  \"status\": \"string\",\n  \"created\": \"string\",\n  \"due\": \"string\",\n  \"rating\": \"number\",\n  \"done\": \"boolean\",\n  \"tags\": \"list\",\n  \"related\": \"list\"\n },\n \"values\": {\n  \"title\": \"Quoted: value with colon\",\n  \"status\": \"draft\",\n  \"created\": \"2026-01-15\",\n  \"due\": \"2026-02-01T09:30\",\n  \"rating\": 4,\n  \"done\": false,\n  \"tags\": [\n   \"proj\",\n   \"fixture\"\n  ],\n  \"related\": [\n   \"[[Target Note]]\",\n   \"plain item\"\n  ]\n }\n}\n"
+   },
+   {
+    "args": [
+     "crlf",
+     "long/Long CRLF Note.md"
+    ],
+    "sha256": "1c1cb3bcdba1076fdd7bb4602c17969e3c0896ae65037544e1ca2fba24eee99b",
+    "out": "{\n \"lines\": 2974,\n \"crlf\": 2974,\n \"lf\": 0,\n \"mixed\": false\n}\n"
+   }
+  ]
+ },
+ "hard-cases-standalone": {
+  "options": [
+   "--standalone"
+  ],
+  "treeHash": "613d178224101b3d71b8d9f2e2f32b50c8ab1a17e60d4b19e9605e8b8effe7b7",
+  "truth": [
+   {
+    "args": [
+     "tasks"
+    ],
+    "sha256": "b53caa9a1c8b5091d13d6b433a90fbf33507afa7c75ab87dda8bcaef2449298e",
+    "out": "{\n \"open\": 10,\n \"done\": 6,\n \"other\": 0,\n \"total\": 16,\n \"files\": 7\n}\n"
+   },
+   {
+    "args": [
+     "backlinks",
+     "Target Note.md"
+    ],
+    "sha256": "f4d19f2bd5305d2870c12da3c345615fa04c8a6f0a8814fee3cd84933294589e",
+    "out": "{\n \"target\": \"Target Note.md\",\n \"total\": 9,\n \"files\": [\n  {\n   \"file\": \"other folder/ref-other-folder.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"props/Property Note.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"refs/deeper/ref-markdown.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"refs/ref-alias-display.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"refs/ref-block.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"refs/ref-embed.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"refs/ref-heading.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"refs/ref-wikilink.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"tiếng việt/Ghi chú tiếng Việt.md\",\n   \"count\": 1\n  }\n ]\n}\n"
+   },
+   {
+    "args": [
+     "unresolved"
+    ],
+    "sha256": "8f567bfe68cc3648b30953b70b5633478896121c00bf50da55bfb9dd47b9362a",
+    "out": "{\n \"total\": 2,\n \"targets\": 2,\n \"links\": [\n  {\n   \"file\": \"refs/ref-alias-name.md\",\n   \"target\": \"TN Alias\"\n  },\n  {\n   \"file\": \"refs/ref-unresolved.md\",\n   \"target\": \"Missing Note Zeta\"\n  }\n ]\n}\n"
+   },
+   {
+    "args": [
+     "tags",
+     "proj"
+    ],
+    "sha256": "91f3fa5507b96f9bd1781b44d0247640ede77b9879857547a42e63655082fc70",
+    "out": "{\n \"tag\": \"proj\",\n \"body\": 2,\n \"frontmatter\": 2,\n \"bodyAt\": [\n  \"tags/tag-body.md:1\",\n  \"tiếng việt/Kế hoạch dự án.md:3\"\n ],\n \"frontmatterIn\": [\n  \"props/Property Note.md\",\n  \"tags/tag-frontmatter.md\"\n ]\n}\n"
+   },
+   {
+    "args": [
+     "yaml",
+     "props/Property Note.md"
+    ],
+    "sha256": "f73c2f861e07ad6f64705bb3bbfb7574ca746bed2a3378b58dd3f9b92ab8fcf1",
+    "out": "{\n \"valid\": true,\n \"keys\": {\n  \"title\": \"string\",\n  \"status\": \"string\",\n  \"created\": \"string\",\n  \"due\": \"string\",\n  \"rating\": \"number\",\n  \"done\": \"boolean\",\n  \"tags\": \"list\",\n  \"related\": \"list\"\n },\n \"values\": {\n  \"title\": \"Quoted: value with colon\",\n  \"status\": \"draft\",\n  \"created\": \"2026-01-15\",\n  \"due\": \"2026-02-01T09:30\",\n  \"rating\": 4,\n  \"done\": false,\n  \"tags\": [\n   \"proj\",\n   \"fixture\"\n  ],\n  \"related\": [\n   \"[[Target Note]]\",\n   \"plain item\"\n  ]\n }\n}\n"
+   },
+   {
+    "args": [
+     "crlf",
+     "long/Long CRLF Note.md"
+    ],
+    "sha256": "1c1cb3bcdba1076fdd7bb4602c17969e3c0896ae65037544e1ca2fba24eee99b",
+    "out": "{\n \"lines\": 2974,\n \"crlf\": 2974,\n \"lf\": 0,\n \"mixed\": false\n}\n"
+   }
+  ]
+ },
+ "hard-cases-bulk200": {
+  "options": [
+   "--bulk",
+   "200"
+  ],
+  "treeHash": "cf7e255fa1d1a4da81c966186f9e4585198cc3ac71a71cdced6de1c5f7b5da3d",
+  "truth": [
+   {
+    "args": [
+     "tasks"
+    ],
+    "sha256": "b53caa9a1c8b5091d13d6b433a90fbf33507afa7c75ab87dda8bcaef2449298e",
+    "out": "{\n \"open\": 10,\n \"done\": 6,\n \"other\": 0,\n \"total\": 16,\n \"files\": 7\n}\n"
+   },
+   {
+    "args": [
+     "backlinks",
+     "Target Note.md"
+    ],
+    "sha256": "f4d19f2bd5305d2870c12da3c345615fa04c8a6f0a8814fee3cd84933294589e",
+    "out": "{\n \"target\": \"Target Note.md\",\n \"total\": 9,\n \"files\": [\n  {\n   \"file\": \"other folder/ref-other-folder.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"props/Property Note.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"refs/deeper/ref-markdown.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"refs/ref-alias-display.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"refs/ref-block.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"refs/ref-embed.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"refs/ref-heading.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"refs/ref-wikilink.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"tiếng việt/Ghi chú tiếng Việt.md\",\n   \"count\": 1\n  }\n ]\n}\n"
+   },
+   {
+    "args": [
+     "unresolved"
+    ],
+    "sha256": "8f567bfe68cc3648b30953b70b5633478896121c00bf50da55bfb9dd47b9362a",
+    "out": "{\n \"total\": 2,\n \"targets\": 2,\n \"links\": [\n  {\n   \"file\": \"refs/ref-alias-name.md\",\n   \"target\": \"TN Alias\"\n  },\n  {\n   \"file\": \"refs/ref-unresolved.md\",\n   \"target\": \"Missing Note Zeta\"\n  }\n ]\n}\n"
+   },
+   {
+    "args": [
+     "tags",
+     "proj"
+    ],
+    "sha256": "91f3fa5507b96f9bd1781b44d0247640ede77b9879857547a42e63655082fc70",
+    "out": "{\n \"tag\": \"proj\",\n \"body\": 2,\n \"frontmatter\": 2,\n \"bodyAt\": [\n  \"tags/tag-body.md:1\",\n  \"tiếng việt/Kế hoạch dự án.md:3\"\n ],\n \"frontmatterIn\": [\n  \"props/Property Note.md\",\n  \"tags/tag-frontmatter.md\"\n ]\n}\n"
+   },
+   {
+    "args": [
+     "yaml",
+     "props/Property Note.md"
+    ],
+    "sha256": "f73c2f861e07ad6f64705bb3bbfb7574ca746bed2a3378b58dd3f9b92ab8fcf1",
+    "out": "{\n \"valid\": true,\n \"keys\": {\n  \"title\": \"string\",\n  \"status\": \"string\",\n  \"created\": \"string\",\n  \"due\": \"string\",\n  \"rating\": \"number\",\n  \"done\": \"boolean\",\n  \"tags\": \"list\",\n  \"related\": \"list\"\n },\n \"values\": {\n  \"title\": \"Quoted: value with colon\",\n  \"status\": \"draft\",\n  \"created\": \"2026-01-15\",\n  \"due\": \"2026-02-01T09:30\",\n  \"rating\": 4,\n  \"done\": false,\n  \"tags\": [\n   \"proj\",\n   \"fixture\"\n  ],\n  \"related\": [\n   \"[[Target Note]]\",\n   \"plain item\"\n  ]\n }\n}\n"
+   },
+   {
+    "args": [
+     "crlf",
+     "long/Long CRLF Note.md"
+    ],
+    "sha256": "1c1cb3bcdba1076fdd7bb4602c17969e3c0896ae65037544e1ca2fba24eee99b",
+    "out": "{\n \"lines\": 2974,\n \"crlf\": 2974,\n \"lf\": 0,\n \"mixed\": false\n}\n"
+   }
+  ]
+ },
+ "personal-vault-seed7": {
+  "options": [
+   "--seed",
+   "7"
+  ],
+  "treeHash": "ac4c8a4f49cee1854efff4b76f60943f6436fbe3cea5434bc9cc151d6f39a647",
+  "truth": [
+   {
+    "args": [
+     "tasks"
+    ],
+    "sha256": "118fc1d585e11c7f86508d0b0ea985a2ecd2c15d5e04e91c7a3efb8c8f6439c3",
+    "out": "{\n \"open\": 451,\n \"done\": 198,\n \"other\": 0,\n \"total\": 649,\n \"files\": 486\n}\n"
+   },
+   {
+    "args": [
+     "backlinks",
+     "_agentkit-lab/Target Note.md"
+    ],
+    "sha256": "8a92c365225efb41a45b7e4aecf566aca6361f7ae53659cfc5e26b2b5287947f",
+    "out": "{\n \"target\": \"_agentkit-lab/Target Note.md\",\n \"total\": 9,\n \"files\": [\n  {\n   \"file\": \"_agentkit-lab/other folder/ref-other-folder.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"_agentkit-lab/props/Property Note.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"_agentkit-lab/refs/deeper/ref-markdown.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"_agentkit-lab/refs/ref-alias-display.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"_agentkit-lab/refs/ref-block.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"_agentkit-lab/refs/ref-embed.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"_agentkit-lab/refs/ref-heading.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"_agentkit-lab/refs/ref-wikilink.md\",\n   \"count\": 1\n  },\n  {\n   \"file\": \"_agentkit-lab/tiếng việt/Ghi chú tiếng Việt.md\",\n   \"count\": 1\n  }\n ]\n}\n"
+   },
+   {
+    "args": [
+     "unresolved"
+    ],
+    "sha256": "85c0307275daf4e57ede8ca7223ba301d653efd9ad0fb82348222832a8d0d3cc",
+    "out": "{\n \"total\": 35,\n \"targets\": 35,\n \"links\": [\n  {\n   \"file\": \"Reference/Articles/Bài viết 022.md\",\n   \"target\": \"Bài viết chưa có 21\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 046.md\",\n   \"target\": \"Bài viết chưa có 45\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 076.md\",\n   \"target\": \"Bài viết chưa có 75\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 088.md\",\n   \"target\": \"Bài viết chưa có 87\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 094.md\",\n   \"target\": \"Bài viết chưa có 93\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 193.md\",\n   \"target\": \"Bài viết chưa có 192\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 216.md\",\n   \"target\": \"Bài viết chưa có 215\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 218.md\",\n   \"target\": \"Bài viết chưa có 217\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 245.md\",\n   \"target\": \"Bài viết chưa có 244\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 316.md\",\n   \"target\": \"Bài viết chưa có 315\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 317.md\",\n   \"target\": \"Bài viết chưa có 316\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 322.md\",\n   \"target\": \"Bài viết chưa có 321\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 346.md\",\n   \"target\": \"Bài viết chưa có 345\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 363.md\",\n   \"target\": \"Bài viết chưa có 362\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 377.md\",\n   \"target\": \"Bài viết chưa có 376\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 383.md\",\n   \"target\": \"Bài viết chưa có 382\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 393.md\",\n   \"target\": \"Bài viết chưa có 392\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 398.md\",\n   \"target\": \"Bài viết chưa có 397\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 405.md\",\n   \"target\": \"Bài viết chưa có 404\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 426.md\",\n   \"target\": \"Bài viết chưa có 425\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 433.md\",\n   \"target\": \"Bài viết chưa có 432\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 436.md\",\n   \"target\": \"Bài viết chưa có 435\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 441.md\",\n   \"target\": \"Bài viết chưa có 440\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 459.md\",\n   \"target\": \"Bài viết chưa có 458\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 481.md\",\n   \"target\": \"Bài viết chưa có 480\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 502.md\",\n   \"target\": \"Bài viết chưa có 501\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 504.md\",\n   \"target\": \"Bài viết chưa có 503\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 538.md\",\n   \"target\": \"Bài viết chưa có 537\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 613.md\",\n   \"target\": \"Bài viết chưa có 612\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 633.md\",\n   \"target\": \"Bài viết chưa có 632\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 649.md\",\n   \"target\": \"Bài viết chưa có 648\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 672.md\",\n   \"target\": \"Bài viết chưa có 671\"\n  },\n  {\n   \"file\": \"Reference/Articles/Bài viết 694.md\",\n   \"target\": \"Bài viết chưa có 693\"\n  },\n  {\n   \"file\": \"_agentkit-lab/refs/ref-alias-name.md\",\n   \"target\": \"TN Alias\"\n  },\n  {\n   \"file\": \"_agentkit-lab/refs/ref-unresolved.md\",\n   \"target\": \"Missing Note Zeta\"\n  }\n ]\n}\n"
+   },
+   {
+    "args": [
+     "tags",
+     "proj"
+    ],
+    "sha256": "eccb1a0847afc6e1a9658f1ef7a1d3c4f7b1017f4e1ee6543fa4a0530e10e589",
+    "out": "{\n \"tag\": \"proj\",\n \"body\": 2,\n \"frontmatter\": 2,\n \"bodyAt\": [\n  \"_agentkit-lab/tags/tag-body.md:1\",\n  \"_agentkit-lab/tiếng việt/Kế hoạch dự án.md:3\"\n ],\n \"frontmatterIn\": [\n  \"_agentkit-lab/props/Property Note.md\",\n  \"_agentkit-lab/tags/tag-frontmatter.md\"\n ]\n}\n"
+   },
+   {
+    "args": [
+     "yaml",
+     "_agentkit-lab/props/Property Note.md"
+    ],
+    "sha256": "f73c2f861e07ad6f64705bb3bbfb7574ca746bed2a3378b58dd3f9b92ab8fcf1",
+    "out": "{\n \"valid\": true,\n \"keys\": {\n  \"title\": \"string\",\n  \"status\": \"string\",\n  \"created\": \"string\",\n  \"due\": \"string\",\n  \"rating\": \"number\",\n  \"done\": \"boolean\",\n  \"tags\": \"list\",\n  \"related\": \"list\"\n },\n \"values\": {\n  \"title\": \"Quoted: value with colon\",\n  \"status\": \"draft\",\n  \"created\": \"2026-01-15\",\n  \"due\": \"2026-02-01T09:30\",\n  \"rating\": 4,\n  \"done\": false,\n  \"tags\": [\n   \"proj\",\n   \"fixture\"\n  ],\n  \"related\": [\n   \"[[Target Note]]\",\n   \"plain item\"\n  ]\n }\n}\n"
+   },
+   {
+    "args": [
+     "crlf",
+     "_agentkit-lab/long/Long CRLF Note.md"
+    ],
+    "sha256": "1c1cb3bcdba1076fdd7bb4602c17969e3c0896ae65037544e1ca2fba24eee99b",
+    "out": "{\n \"lines\": 2974,\n \"crlf\": 2974,\n \"lf\": 0,\n \"mixed\": false\n}\n"
+   }
+  ]
+ }
+}
