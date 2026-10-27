@@ -5,8 +5,8 @@ import { generate } from '../lib/index.mjs';
 
 export const parity = JSON.parse(fs.readFileSync(new URL('./fixtures/parity.json', import.meta.url), 'utf8'));
 
-const PRESET = { 'hard-cases': 'hard-cases', 'hard-cases-standalone': 'hard-cases', 'hard-cases-bulk200': 'hard-cases', 'personal-vault-seed7': 'personal-vault', 'kg-solo': 'kg-solo' };
-const OPTS = { 'hard-cases': {}, 'hard-cases-standalone': { standalone: true }, 'hard-cases-bulk200': { bulk: 200 }, 'personal-vault-seed7': { seed: 7 }, 'kg-solo': {} };
+const PRESET = { 'hard-cases': 'hard-cases', 'hard-cases-standalone': 'hard-cases', 'hard-cases-bulk200': 'hard-cases', 'personal-vault-seed7': 'personal-vault', 'kg-solo': 'kg-solo', 'kg-solo-ui': 'kg-solo' };
+const OPTS = { 'hard-cases': {}, 'hard-cases-standalone': { standalone: true }, 'hard-cases-bulk200': { bulk: 200 }, 'personal-vault-seed7': { seed: 7 }, 'kg-solo': {}, 'kg-solo-ui': { ui: true } };
 
 const cache = new Map();
 export function vault(name) {

@@ -219,5 +219,10 @@
   "options": [],
   "treeHash": "df4656920cc0c991b90cb8f3e8ad6a6b68a8c20d44af4867bd90524c004f3f6e",
   "truth": []
+ },
+ "kg-solo-ui": {
+  "options": [],
+  "treeHash": "f3f7da39ef8127522463e82691540bcf16ff0e31cfaa77f3c99246c014a7ff9b",
+  "truth": []
  }
 }

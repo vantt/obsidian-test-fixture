@@ -2,6 +2,10 @@
 
 Any change to generated output is a breaking change and needs a new minor version here, because downstream answer keys depend on it.
 
+## 0.5.0
+- `kg-solo --ui` (library option `ui`): writes `.obsidian/` config (core Bases, property types, Breadcrumbs and ExcaliBrain settings), five `.base` files, embedded views at the end of every organization, project and factor note, and `Hướng dẫn thử.md` (exercises tied to answer-key cases). No plugin code.
+- Without `--ui` the generated tree is unchanged (parity tests); the manifest options list gains `ui: false`, and the manifest is outside the tree hash. With `--ui` the answer key has the same cases and answers; only `stats` counts the guide note.
+
 ## 0.4.0
 - `kg-solo` cases carry `mode` (navigate, search, ask, push, write) and `strategy` (resolve, one-shot, explore); explore cases carry a tool-call `budget`, ambiguous lookups a `behavior` (clarify, merge-aware).
 - Seven new cases: a search report page, lookups without diacritics, an ambiguous person, a duplicate client, a suggestion while writing, two explore questions. The answer key changes, so the `kg-solo` tree hash changes.

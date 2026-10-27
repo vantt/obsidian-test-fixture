@@ -6,6 +6,7 @@
 // test/kg.test.mjs checks the hand-designed core cases against hand-written answers.
 import { createRng } from '../lib/prng.mjs';
 import { loadKg, norm, runQuery, stats } from '../lib/kg.mjs';
+import { EMBEDS, baseFiles, guide, obsidianFiles } from './kg-solo-ui.mjs';
 
 export const name = 'kg-solo';
 export const description = 'Knowledge-graph vault of a solo consultant: typed edges, claims over time, causal loops, planted errors, answer key.';
@@ -14,6 +15,7 @@ export const options = {
   clients: { default: 30, description: 'procedural clients on top of the core story (about 13 notes each)' },
   days: { default: 365, description: 'days of daily notes ending at 2026-10-15 (about 60% of days get a note)' },
   answers: { default: '.kg-answers.json', description: 'dot file with the schema and the answer key (JSON)' },
+  ui: { default: false, description: 'also write UI config: .obsidian plugin settings (Bases, Breadcrumbs, ExcaliBrain), .base files, embedded views in client/project/factor pages, and a hands-on guide' },
 };
 
 export const TODAY = '2026-10-15';
@@ -92,7 +94,7 @@ const day0 = Date.UTC(2018, 0, 1);
 const iso = (d) => new Date(day0 + d * 864e5).toISOString().slice(0, 10);
 const dayOf = (s) => Math.round((Date.parse(s + 'T00:00:00Z') - day0) / 864e5);
 
-export function build({ seed = 11, clients = 30, days = 365, answers = options.answers.default } = {}) {
+export function build({ seed = 11, clients = 30, days = 365, answers = options.answers.default, ui = false } = {}) {
   const { rand, pick, some, chance } = createRng(seed);
   const notes = new Map(); // path -> {fm, body}
   const titleTo = new Map(); // title -> path
@@ -300,7 +302,7 @@ export function build({ seed = 11, clients = 30, days = 365, answers = options.a
 
   // --- render, then compute the answer key over the rendered files --------------------------------------
   const files = new Map();
-  for (const [p, n] of [...notes].sort(([a], [b]) => (a < b ? -1 : 1))) files.set(p, renderFm(n.fm) + n.body);
+  for (const [p, n] of [...notes].sort(([a], [b]) => (a < b ? -1 : 1))) files.set(p, renderFm(n.fm) + n.body + (ui ? EMBEDS[n.fm.type] || '' : ''));
   const kg = loadKg(files, schema);
   const P = (t) => titleTo.get(t);
   const cases = coreCases(P).concat(proceduralCases(P, orgs.slice(0, 8), kg));
@@ -309,10 +311,15 @@ export function build({ seed = 11, clients = 30, days = 365, answers = options.a
     Object.assign(c, { mode, strategy });
     c.expect = c.query ? runQuery(kg, c.query) : c.queries.map((q) => runQuery(kg, q));
   }
+  if (ui) {
+    // The guide and config come after the cases: they hold no typed edge and link to no mentioned note, so the
+    // cases stay as computed; stats below count the guide note.
+    for (const [p, text] of [...baseFiles(TODAY), ...obsidianFiles(), ['Hướng dẫn thử.md', guide(cases)]]) files.set(p, text);
+  }
   files.set(answers, JSON.stringify({
     about: 'Answer key for the kg-solo preset of obsidian-test-fixture. Every expect is what lib/kg.mjs computes over the files; dates compare as ISO strings, validity windows are inclusive.',
     generator: { preset: name, seed, clients, days },
-    today: TODAY, schema, stats: stats(kg), cases,
+    today: TODAY, schema, stats: ui ? stats(loadKg(files, schema)) : stats(kg), cases,
   }, null, 1) + '\n');
   return files;
 }

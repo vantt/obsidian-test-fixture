@@ -16,7 +16,7 @@ Not published on the npm registry. Pin a tag.
 ## CLI
 
 ```
-otf generate --preset hard-cases|personal-vault|kg-solo --out <dir> [--seed S] [--bulk N] [--standalone] [--git] [--lab-dir D] [--marker F] [--answers-out F] [--clients N] [--days N] [--answers F]
+otf generate --preset hard-cases|personal-vault|kg-solo --out <dir> [--seed S] [--bulk N] [--standalone] [--git] [--lab-dir D] [--marker F] [--answers-out F] [--clients N] [--days N] [--answers F] [--ui]
 otf truth <tasks|backlinks|unresolved|tags|yaml|crlf> <vault> [args]
 otf graph <vault> [--out graph.json]
 otf kg <vault> <stats|validate|cases|case <id>|query <json>> [--answers F]
@@ -77,7 +77,7 @@ otf generate --preset personal-vault --git --out ./vault-synth --answers-out ~/.
 
 ### `kg-solo` (about 750 notes by default, 4,800 with `--clients 300 --days 730`)
 
-The knowledge graph of a one-person consulting business, for testing graph indexes, typed-edge queries, validators and question answering over notes. Options: `--seed` (11), `--clients` (30, procedural clients on top of the core story, about 13 notes each), `--days` (365, daily notes ending at 2026-10-15), `--answers` (`.kg-answers.json`).
+The knowledge graph of a one-person consulting business, for testing graph indexes, typed-edge queries, validators and question answering over notes. Options: `--seed` (11), `--clients` (30, procedural clients on top of the core story, about 13 notes each), `--days` (365, daily notes ending at 2026-10-15), `--answers` (`.kg-answers.json`), `--ui` (off; see below).
 
 Typed edges are frontmatter keys holding quoted wikilinks (`uses: ["[[Webflow]]"]`); a claim note is one edge (cause -> effect, or subject -> object) with status, confidence, sources (down to a `#^block`) and a validity window. Inverse names (`used_by`, `has_contract`, `contact`) are implied, never written, except where a planted error writes one.
 
@@ -98,6 +98,19 @@ Typed edges are frontmatter keys holding quoted wikilinks (`uses: ["[[Webflow]]"
 Query ops (`lib/kg.mjs`): `neighbors`, `reach`, `paths` (with net sign), `cycles` (reinforcing or balancing), `chain` (steps with their own dates), `provenance`, `valid`, `select`, `find` (word match ignoring case and diacritics, over titles and aliases), `resolve`, `field`, `mentions`, `collisions`, `validate`. `asOf` filters by validity window; claim edges count when `accepted` or `superseded` unless `statuses` says otherwise; links resolve by title, then alias.
 
 Every `expect` is computed by `lib/kg.mjs` over the written files; `test/kg.test.mjs` pins the hand-designed answers by hand at two sizes.
+
+### `kg-solo --ui`: a vault to try in Obsidian
+
+`--ui` adds a UI layer on top of the same notes. Without it the tree is byte-identical to before (parity test); the answer key is the same too, except `stats` counts the guide note.
+
+| Added | What |
+|---|---|
+| `.obsidian/` | `app.json`, `core-plugins.json` (Bases on), `types.json` (date and number properties), and `plugins/breadcrumbs/data.json`, `plugins/excalibrain/data.json`: the plugins' own settings files. No plugin code; install and enable Breadcrumbs, Dataview, Excalidraw, ExcaliBrain yourself and they find their settings in place |
+| `Bases/*.base` | current contact, active contracts, projects, LLM proposals pending, claims of a factor. Each has an all-vault view and a "Của trang này" view filtered by `this.file`; dates compare against the answer key's today (2026-10-15), not the real date |
+| Report pages | every organization, project and factor note ends with a "Tổng hợp" section embedding the matching views (`![[Bases/X.base#Của trang này]]`) |
+| `Hướng dẫn thử.md` | setup, then exercises for way 1 (navigate: breadcrumbs, ExcaliBrain) and way 2 (search: Quick Switcher, report page) of obsidian-pkm-automation `docs/knowledge-graph/usage.md`; each exercise quotes its case id and the case's expected answer, with a phone/desktop result table |
+
+Breadcrumbs: edge fields `up`/`down`, `parent_moc`/`child_moc`, `part_of`/`has_part`, `conditions`/`conditioned_by`, `next`/`prev`, `related`; the inverse of each is implied by a transitive rule (the vault never writes inverses). ExcaliBrain: parents `up`, `parent_moc`, `part_of`; children `down`, `child_moc`, `has_part`; friends `related`; siblings are inferred. Formats are those of Obsidian Bases (help.obsidian.md), Breadcrumbs 4.22.1 and ExcaliBrain 0.2.19; sources are listed at the top of `presets/kg-solo-ui.mjs`. The tests check that the files parse, agree with the schema and point at real bases and views; they cannot run Obsidian, so what the plugins display is for the guide's exercises to confirm.
 
 ## Graph export
 
