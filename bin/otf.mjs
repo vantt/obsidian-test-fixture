@@ -1,14 +1,18 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
+import path from 'node:path';
 import { COMMANDS, UsageError, format, truth } from '../lib/truth.mjs';
 import { buildGraph } from '../lib/graph.mjs';
 import { generate, presets, verify, version } from '../lib/index.mjs';
+import { loadKg, readVault, runQuery, stats } from '../lib/kg.mjs';
+import { schema as kgSoloSchema } from '../presets/kg-solo.mjs';
 
 const USAGE = `otf ${version}
 usage:
   otf generate --preset <name> --out <dir> [--seed S] [--bulk N] [--standalone] [--git] [--lab-dir D] [--marker F]
   otf truth <${COMMANDS.join('|')}> <vault> [args]
   otf graph <vault> [--out graph.json]
+  otf kg <vault> <stats|validate|cases|case <id>|query <json>> [--answers F]
   otf verify <vault>
   otf presets`;
 
@@ -59,6 +63,26 @@ try {
       if (!f._[0]) fail('usage: otf graph <vault> [--out graph.json]');
       const text = JSON.stringify(buildGraph(f._[0], { otfVersion: version }), null, 2) + '\n';
       if (f.out) fs.writeFileSync(f.out, text); else process.stdout.write(text);
+      break;
+    }
+    case 'kg': {
+      // Reference engine over any vault. Schema and cases come from the vault's answer key when it has one.
+      const f = flags(rest, { answers: 'val' });
+      const [vault, sub, arg] = f._;
+      if (!vault || !sub) fail('usage: otf kg <vault> <stats|validate|cases|case <id>|query <json>> [--answers F]');
+      const keyFile = path.join(vault, f.answers || presets['kg-solo'].options.answers.default);
+      const key = fs.existsSync(keyFile) ? JSON.parse(fs.readFileSync(keyFile, 'utf8')) : null;
+      const kg = loadKg(readVault(vault), key?.schema || kgSoloSchema);
+      const caseOf = (id) => key?.cases.find((c) => c.id === id) || fail(`no case "${id}" in ${keyFile}`);
+      const out = {
+        stats: () => stats(kg),
+        validate: () => runQuery(kg, { op: 'validate' }),
+        cases: () => (key ? key.cases.map(({ id, bt, question }) => ({ id, bt, question })) : fail(`no answer key at ${keyFile}`)),
+        case: () => { const c = caseOf(arg); const got = c.query ? runQuery(kg, c.query) : c.queries.map((q) => runQuery(kg, q)); return { id: c.id, question: c.question, ok: JSON.stringify(got) === JSON.stringify(c.expect), got, expect: c.expect }; },
+        query: () => runQuery(kg, JSON.parse(arg)),
+      }[sub];
+      if (!out) fail(`unknown kg command: ${sub}`);
+      console.log(JSON.stringify(out(), null, 1));
       break;
     }
     case 'verify': {

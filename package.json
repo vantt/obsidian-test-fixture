@@ -1,6 +1,6 @@
 {
   "name": "obsidian-test-fixture",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Deterministic synthetic Obsidian vaults with a machine-readable answer key.",
   "type": "module",
   "license": "MIT",
@@ -9,11 +9,13 @@
     ".": "./lib/index.mjs",
     "./truth": "./lib/truth.mjs",
     "./graph": "./lib/graph.mjs",
+    "./kg": "./lib/kg.mjs",
     "./presets/hard-cases": "./presets/hard-cases.mjs",
-    "./presets/personal-vault": "./presets/personal-vault.mjs"
+    "./presets/personal-vault": "./presets/personal-vault.mjs",
+    "./presets/kg-solo": "./presets/kg-solo.mjs"
   },
   "files": ["bin", "lib", "presets", "vendor", "README.md", "CHANGELOG.md", "LICENSE"],
   "engines": { "node": ">=20" },
   "repository": { "type": "git", "url": "git+https://github.com/vantt/obsidian-test-fixture.git" },
-  "scripts": { "test": "node --test test/parity.test.mjs test/graph.test.mjs test/cli.test.mjs" }
+  "scripts": { "test": "node --test test/parity.test.mjs test/graph.test.mjs test/cli.test.mjs test/kg.test.mjs" }
 }

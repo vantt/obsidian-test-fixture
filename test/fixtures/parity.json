@@ -214,5 +214,10 @@
     "out": "{\n \"lines\": 2974,\n \"crlf\": 2974,\n \"lf\": 0,\n \"mixed\": false\n}\n"
    }
   ]
+ },
+ "kg-solo": {
+  "options": [],
+  "treeHash": "3a2c9bd8751108cb548519a47b1b1410e9f1ae0ad6bb0082a3e76a564263ceb9",
+  "truth": []
  }
 }

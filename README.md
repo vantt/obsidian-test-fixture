@@ -7,8 +7,8 @@ Every word is generated. Same preset + same seed + same version gives byte-ident
 ## Install
 
 ```bash
-npm i -D github:vantt/obsidian-test-fixture#v0.1.1
-npx github:vantt/obsidian-test-fixture#v0.1.1 generate --preset personal-vault --seed 7 --out ./vault
+npm i -D github:vantt/obsidian-test-fixture#v0.2.0
+npx github:vantt/obsidian-test-fixture#v0.2.0 generate --preset personal-vault --seed 7 --out ./vault
 ```
 
 Not published on the npm registry. Pin a tag.
@@ -16,14 +16,16 @@ Not published on the npm registry. Pin a tag.
 ## CLI
 
 ```
-otf generate --preset hard-cases|personal-vault --out <dir> [--seed S] [--bulk N] [--standalone] [--git] [--lab-dir D] [--marker F]
+otf generate --preset hard-cases|personal-vault|kg-solo --out <dir> [--seed S] [--bulk N] [--standalone] [--git] [--lab-dir D] [--marker F] [--clients N] [--days N] [--answers F]
 otf truth <tasks|backlinks|unresolved|tags|yaml|crlf> <vault> [args]
 otf graph <vault> [--out graph.json]
+otf kg <vault> <stats|validate|cases|case <id>|query <json>> [--answers F]
 otf verify <vault>
 otf presets
 ```
 
 - `generate` refuses a non-empty `--out`. It writes `.fixture-manifest.json` (preset, resolved options, version, tree hash, file count). Dot-files are not indexed by Obsidian or by `truth`/`graph`.
+- `kg` runs the reference knowledge-graph engine (`lib/kg.mjs`) over any vault: `case <id>` re-answers one case of the answer key and prints `ok`, `query` takes a JSON query such as `{"op":"reach","node":"Yếu tố/Giờ ngủ.md","rels":["decreases"]}`. Schema and cases come from the vault's `.kg-answers.json`; without one the `kg-solo` schema is used.
 - `verify` re-hashes the vault against that manifest (exit 1 on mismatch).
 - `truth` answers from files alone, no Obsidian needed. Output is JSON, same as obsidian-agentkit's `gt.mjs`:
   - `tasks [folder]`: open/done counts outside code
@@ -42,7 +44,7 @@ const graph = buildGraph(dir);
 const res = await truth('backlinks', dir, ['Target Note.md']);
 ```
 
-Also importable: `obsidian-test-fixture/truth`, `/graph`, `/presets/hard-cases`, `/presets/personal-vault` (each preset exports `build(options) -> Map<path, text>`, `options`, `description`).
+Also importable: `obsidian-test-fixture/truth`, `/graph`, `/kg`, `/presets/hard-cases`, `/presets/personal-vault`, `/presets/kg-solo` (each preset exports `build(options) -> Map<path, text>`, `options`, `description`).
 
 ## Presets
 
@@ -67,6 +69,25 @@ Options: `--seed` (42), `--bulk N` (0), `--standalone` (adds `.obsidian/` config
 
 Options: `--seed` (7), `--lab-dir` (`_agentkit-lab`), `--marker` (`.e8-synthetic`). Daily notes at the root, People, Projects, Work/Meetings, Reference/Articles, Recipes, Books, Travel, Inbox, `.obsidian/` config, the `hard-cases` fixture under the lab dir, and a marker file with the "Đà Nẵng" answer key (`s6.relevant`, `passing`, `decoys`). The marker's JSON shape is `{about, generator, seed, s6}`. With `--git` the vault is committed (autocrlf off).
 
+### `kg-solo` (about 750 notes by default, 4,800 with `--clients 300 --days 730`)
+
+The knowledge graph of a one-person consulting business, for testing graph indexes, typed-edge queries, validators and question answering over notes. Options: `--seed` (11), `--clients` (30, procedural clients on top of the core story, about 13 notes each), `--days` (365, daily notes ending at 2026-10-15), `--answers` (`.kg-answers.json`).
+
+Typed edges are frontmatter keys holding quoted wikilinks (`uses: ["[[Webflow]]"]`); a claim note is one edge (cause -> effect, or subject -> object) with status, confidence, sources (down to a `#^block`) and a validity window. Inverse names (`used_by`, `has_contract`, `contact`) are implied, never written, except where a planted error writes one.
+
+| Area | What is in the vault |
+|---|---|
+| Core story (fixed at any seed and size) | 3 clients, 6 people, 5 projects, 3 contracts (one renewed), 5 meetings with block ids, 3 decisions (one reversed), 2 price lists, 3 sources, 21 factors, 25 claims, 4 MOCs, 7 concepts |
+| Time | contact person of a client changes on 2026-04-01; a person moves to another client; contract, price list and decision replaced by newer ones (`superseded_by`, `valid_from`/`valid_to`) |
+| Causal model | one reinforcing loop (revenue, marketing, leads, projects), two balancing loops (overload; overload, sleep, burnout, response time), a `conditions` chain with a branch that only exists from 2026, a `prevents` link, a correlation that is not causation, proposals waiting to be upgraded |
+| Identity | links written through aliases (`[[ABC Corp]]`), a duplicate client created by an LLM (`Cua hang Moc`), two different people whose names collide without diacritics (`Nguyễn Văn An`, `Nguyễn Văn Ân`) |
+| Planted errors | one per schema rule R2-R10 (12 in all), and no other error at any size |
+| Procedural clients | people, contact changes, projects (some linked by alias), contracts and renewals, meetings, decisions, and two factors per client wired into the causal model (two more loops per client) |
+
+`.kg-answers.json` holds `schema` (types, edges with domain, range, inverse, polarity; fact relations; claim fields; rules R1-R10), `stats` (notes and edges by type and relation), and `cases`: about 40 hand-designed questions in Vietnamese, tagged with the problem they test (`bt`: BT1 browsing, BT2 multi-hop, BT3 answering, BT4 identity, BT5 types, BT6 typed relations, BT7 evidence, BT8 causality, BT9 time, BT10 navigation, BT11 schema, BT12 LLM proposals), plus a few cases per procedural client and scale cases (all loops, multi-step upstream). Each case has `question`, `query` (or `queries`) and `expect`. Query ops (`lib/kg.mjs`): `neighbors`, `reach`, `paths` (with net sign), `cycles` (reinforcing or balancing), `chain` (steps with their own dates), `provenance`, `valid`, `select`, `resolve`, `field`, `mentions`, `collisions`, `validate`. `asOf` filters by validity window; claim edges count when `accepted` or `superseded` unless `statuses` says otherwise; links resolve by title, then alias.
+
+Every `expect` is computed by `lib/kg.mjs` over the written files; `test/kg.test.mjs` pins the hand-designed answers by hand at two sizes.
+
 ## Graph export
 
 `otf graph <vault>` prints:
@@ -87,11 +108,12 @@ Options: `--seed` (7), `--lab-dir` (`_agentkit-lab`), `--marker` (`.e8-synthetic
 4. Resolution order: empty target (`[[#H]]`) is the note itself; then exact vault path, with and without `.md`; then path relative to the source note; then for targets with `/`, a case-insensitive path-suffix match; then case-insensitive basename (shallowest path wins); then a non-md attachment by basename. Otherwise unresolved.
 5. Aliases do not resolve: `[[TN Alias]]` is unresolved even though `Target Note` lists it (measured on Obsidian CLI 1.14.4, see obsidian-agentkit `docs/FINDINGS.md` F4e). Aliases are in `nodes[].aliases` so a consumer can choose to resolve them.
 6. Unresolved links stay in `edges` with `to: null, resolved: false`. `unresolved` lists wikilink-style links (including frontmatter ones) only, one per link, same as `truth unresolved`.
-7. `line` is the 1-based line in the file. `folder` is `""` for root notes. Node `tags` are frontmatter tags plus body `#tags` outside code (a tag needs a non-digit character), sorted.
+7. Frontmatter edges also carry `key`, the frontmatter property that holds the link (`uses`, `client`, ...): the relation name of a typed edge.
+8. `line` is the 1-based line in the file. `folder` is `""` for root notes. Node `tags` are frontmatter tags plus body `#tags` outside code (a tag needs a non-digit character), sorted.
 
 ## Determinism and versioning
 
-- Same preset, same options, same version: byte-identical tree. `test/fixtures/parity.json` holds the tree hashes recorded from obsidian-agentkit's original scripts; CI checks them on ubuntu and windows, Node 20 and 22.
+- Same preset, same options, same version: byte-identical tree. `test/fixtures/parity.json` holds the tree hashes recorded from obsidian-agentkit's original scripts (`kg-solo`: recorded in this repo); CI checks them on ubuntu and windows, Node 20 and 22.
 - Any change to generated output (including the marker text) is a breaking change: new minor version, entry in `CHANGELOG.md`. Answer keys downstream depend on it. Pin a tag.
 - Tree hash: sha256 over `<path>\0<size>\0<sha256(content)>\n` for each file sorted by code point, top-level `.git` and `.fixture-manifest.json` skipped.
 
