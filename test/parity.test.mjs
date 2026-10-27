@@ -48,3 +48,27 @@ test('lab-dir and marker options keep parity defaults, rename when set', () => {
   assert.deepEqual(Object.keys(m), ['about', 'generator', 'seed', 's6']);
   assert.ok(m.s6.passing.includes('lab/tiếng việt/Ghi chú tiếng Việt.md'));
 });
+
+test('answers-out moves the key out of the vault, marker keeps only a flag', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'otf-'));
+  const key = path.join(dir, 'state', 'answer-key.json');
+  const r = generate({ preset: 'personal-vault', out: path.join(dir, 'x'), options: { answersOut: key } });
+  assert.deepEqual(r.outside, [key]);
+  const m = JSON.parse(fs.readFileSync(path.join(dir, 'x/.e8-synthetic'), 'utf8'));
+  assert.deepEqual(m, { synthetic: true, generator: 'tests/models/gen-synth-vault.mjs', seed: 7 });
+  // The key is exactly what the default marker holds.
+  assert.equal(fs.readFileSync(key, 'utf8'), fs.readFileSync(path.join(vault('personal-vault-seed7'), '.e8-synthetic'), 'utf8'));
+  // Nothing in the vault, manifest included, says where the key went.
+  const manifest = fs.readFileSync(path.join(dir, 'x/.fixture-manifest.json'), 'utf8');
+  assert.equal(JSON.parse(manifest).options.answersOut, true);
+  assert.ok(!manifest.includes(key));
+  assert.notEqual(r.treeHash, parity['personal-vault-seed7'].treeHash);
+});
+
+test('answers-out inside the vault is refused; default manifest has no answersOut', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'otf-'));
+  assert.throws(() => generate({ preset: 'personal-vault', out: path.join(dir, 'x'), options: { answersOut: path.join(dir, 'x/key.json') } }), /^Error: refusing:/);
+  assert.ok(!fs.existsSync(path.join(dir, 'x')));
+  const m = JSON.parse(fs.readFileSync(path.join(vault('personal-vault-seed7'), '.fixture-manifest.json'), 'utf8'));
+  assert.deepEqual(Object.keys(m.options), ['seed', 'labDir', 'marker']);
+});

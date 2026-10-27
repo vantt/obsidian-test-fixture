@@ -9,7 +9,7 @@ import { schema as kgSoloSchema } from '../presets/kg-solo.mjs';
 
 const USAGE = `otf ${version}
 usage:
-  otf generate --preset <name> --out <dir> [--seed S] [--bulk N] [--standalone] [--git] [--lab-dir D] [--marker F]
+  otf generate --preset <name> --out <dir> [--seed S] [--bulk N] [--standalone] [--git] [--lab-dir D] [--marker F] [--answers-out F]
   otf truth <${COMMANDS.join('|')}> <vault> [args]
   otf graph <vault> [--out graph.json]
   otf kg <vault> <stats|validate|cases|case <id>|query <json>> [--answers F]
@@ -50,6 +50,7 @@ try {
       for (const k of Object.keys(f)) if (k !== '_' && !['preset', 'out', 'git'].includes(k) && !Object.keys(preset.options).some((o) => kebab(o) === k)) fail(`preset ${f.preset} has no option --${k}`);
       const r = generate({ preset: f.preset, out: f.out, options, git: !!f.git });
       console.log(`wrote ${r.files} files to ${f.out}${f.git ? '; git initialised' : ''}\ntree hash ${r.treeHash}`);
+      for (const file of r.outside) console.log(`wrote ${file} (outside the vault)`);
       break;
     }
     case 'truth': {

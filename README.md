@@ -7,8 +7,8 @@ Every word is generated. Same preset + same seed + same version gives byte-ident
 ## Install
 
 ```bash
-npm i -D github:vantt/obsidian-test-fixture#v0.2.0
-npx github:vantt/obsidian-test-fixture#v0.2.0 generate --preset personal-vault --seed 7 --out ./vault
+npm i -D github:vantt/obsidian-test-fixture#v0.3.0
+npx github:vantt/obsidian-test-fixture#v0.3.0 generate --preset personal-vault --seed 7 --out ./vault
 ```
 
 Not published on the npm registry. Pin a tag.
@@ -16,7 +16,7 @@ Not published on the npm registry. Pin a tag.
 ## CLI
 
 ```
-otf generate --preset hard-cases|personal-vault|kg-solo --out <dir> [--seed S] [--bulk N] [--standalone] [--git] [--lab-dir D] [--marker F] [--clients N] [--days N] [--answers F]
+otf generate --preset hard-cases|personal-vault|kg-solo --out <dir> [--seed S] [--bulk N] [--standalone] [--git] [--lab-dir D] [--marker F] [--answers-out F] [--clients N] [--days N] [--answers F]
 otf truth <tasks|backlinks|unresolved|tags|yaml|crlf> <vault> [args]
 otf graph <vault> [--out graph.json]
 otf kg <vault> <stats|validate|cases|case <id>|query <json>> [--answers F]
@@ -67,7 +67,13 @@ Options: `--seed` (42), `--bulk N` (0), `--standalone` (adds `.obsidian/` config
 
 ### `personal-vault` (about 1,800 notes)
 
-Options: `--seed` (7), `--lab-dir` (`_agentkit-lab`), `--marker` (`.e8-synthetic`). Daily notes at the root, People, Projects, Work/Meetings, Reference/Articles, Recipes, Books, Travel, Inbox, `.obsidian/` config, the `hard-cases` fixture under the lab dir, and a marker file with the "Đà Nẵng" answer key (`s6.relevant`, `passing`, `decoys`). The marker's JSON shape is `{about, generator, seed, s6}`. With `--git` the vault is committed (autocrlf off).
+Options: `--seed` (7), `--lab-dir` (`_agentkit-lab`), `--marker` (`.e8-synthetic`), `--answers-out` (none). Daily notes at the root, People, Projects, Work/Meetings, Reference/Articles, Recipes, Books, Travel, Inbox, `.obsidian/` config, the `hard-cases` fixture under the lab dir, and a marker file with the "Đà Nẵng" answer key (`s6.relevant`, `passing`, `decoys`). The marker's JSON shape is `{about, generator, seed, s6}`. With `--git` the vault is committed (autocrlf off).
+
+When an agent under test works on the vault, keep the key out of its reach: `--answers-out <file>` writes that same JSON to a file outside the vault (refused if inside `--out`), and the marker then only says `{"synthetic": true, "generator": ..., "seed": ...}`. The manifest records `answersOut: true`, not the path. Put the file somewhere the agent cannot read.
+
+```bash
+otf generate --preset personal-vault --git --out ./vault-synth --answers-out ~/.local/state/my-eval/answer-key.json
+```
 
 ### `kg-solo` (about 750 notes by default, 4,800 with `--clients 300 --days 730`)
 

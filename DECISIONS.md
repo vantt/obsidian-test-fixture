@@ -41,3 +41,8 @@ Each entry: problem, decision, reason.
 - Problem: `node --test test/` fails on Node 24, and shell globs are not expanded on Windows.
 - Decision: `npm test` names the test files explicitly.
 - Reason: runs the same on Node 20 and 22, ubuntu and windows.
+
+## D9 Answer key outside the vault (0.3.0)
+- Problem: the personal-vault marker holds the S6 answer key, and an agent under test lists the vault root and sometimes reads it (obsidian-agentkit E8 round 0).
+- Decision: opt-in `--answers-out <file>` writes the key (same JSON as the old marker) outside the vault; the marker keeps its name with `{synthetic, generator, seed}` only. A preset returns such files in `files.outside`; options marked `outside: true` must not resolve inside `--out`, and the manifest records only that one was given.
+- Reason: guards that check for the marker keep working, judges read the key from the new file with no format change, and the default tree stays byte-identical. The path stays out of the manifest because the manifest is in the vault, and the path would show the agent where to look.

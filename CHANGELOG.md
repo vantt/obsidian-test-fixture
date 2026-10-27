@@ -2,6 +2,11 @@
 
 Any change to generated output is a breaking change and needs a new minor version here, because downstream answer keys depend on it.
 
+## 0.3.0
+- `personal-vault --answers-out <file>` (library option `answersOut`): writes the S6 answer key (the full marker JSON as before, `{about, generator, seed, s6}`) to a file outside the vault. The marker keeps its name and holds only `{synthetic, generator, seed}`, so an agent that lists or reads the vault cannot see the key. Refused if the file is inside `--out`. The manifest records `answersOut: true`, never the path.
+- Without the option, generated trees, marker and manifest options are unchanged (parity tests).
+- `generate()` returns `outside`, the files written outside the vault.
+
 ## 0.2.0
 - New preset `kg-solo`: knowledge-graph vault of a one-person consulting business with typed edges, claims over time, causal loops, LLM proposals, planted schema errors, and an answer key (`.kg-answers.json`) of questions per problem BT1-BT12.
 - New `lib/kg.mjs` (reference engine: typed edges, R1-R10 validator, query ops) and `otf kg`.

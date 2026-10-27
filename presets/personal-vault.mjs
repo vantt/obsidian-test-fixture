@@ -10,9 +10,10 @@ export const options = {
   seed: { default: 7, description: 'PRNG seed' },
   labDir: { default: '_agentkit-lab', description: 'folder that holds the hard-cases fixture' },
   marker: { default: '.e8-synthetic', description: 'dot file with the S6 answer key (JSON)' },
+  answersOut: { default: '', outside: true, description: 'write the answer key to this file outside the vault; the marker then only flags the vault as synthetic' },
 };
 
-export function build({ seed = 7, labDir = options.labDir.default, marker: markerName = options.marker.default } = {}) {
+export function build({ seed = 7, labDir = options.labDir.default, marker: markerName = options.marker.default, answersOut = options.answersOut.default } = {}) {
   const { rand, pick, some, chance } = createRng(seed);
   const files = new Map();
   const put = (rel, text) => files.set(rel, text);
@@ -115,7 +116,12 @@ const marker = {
   generator: 'tests/models/gen-synth-vault.mjs', seed,
   s6: { relevant: Object.keys(danang), passing, decoys },
 };
-put(markerName, j(marker));
+// With answersOut the key leaves the vault (an agent under test can list and read the vault): the marker keeps
+// its name and only says the vault is synthetic, so a guard that checks for it still works.
+if (answersOut) {
+  put(markerName, j({ synthetic: true, generator: marker.generator, seed }));
+  files.outside = new Map([[answersOut, j(marker)]]);
+} else put(markerName, j(marker));
 put('.gitignore', '.obsidian/workspace*.json\n.obsidian/plugins/\n.trash/\n');
 
 for (const [rel, text] of hardCases.build()) put(`${labDir}/${rel}`, text);

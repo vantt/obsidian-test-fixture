@@ -46,11 +46,27 @@ test('truth and graph through the CLI', () => {
   assert.equal(JSON.parse(fs.readFileSync(file, 'utf8')).version, 1);
 });
 
+test('generate --answers-out writes the key outside the vault', () => {
+  const out = tmp();
+  const key = path.join(path.dirname(out), 'key.json');
+  const g = otf('generate', '--preset', 'personal-vault', '--out', out, '--answers-out', key);
+  assert.equal(g.status, 0, g.stderr);
+  assert.ok(g.stdout.includes(`wrote ${key} (outside the vault)`));
+  assert.ok(JSON.parse(fs.readFileSync(key, 'utf8')).s6.relevant.length);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(out, '.e8-synthetic'), 'utf8')).s6, undefined);
+  assert.equal(otf('verify', out).status, 0);
+  const out2 = tmp();
+  const r = otf('generate', '--preset', 'personal-vault', '--out', out2, '--answers-out', path.join(out2, 'key.json'));
+  assert.equal(r.status, 2);
+  assert.match(r.stderr, /must be outside/);
+});
+
 test('bad input exits 2', () => {
   assert.equal(otf('truth', 'nope', '.').status, 2);
   assert.equal(otf('generate', '--preset', 'nope', '--out', tmp()).status, 2);
   assert.equal(otf('generate', '--preset', 'hard-cases', '--out', tmp(), '--seed').status, 2);
   assert.equal(otf('generate', '--preset', 'hard-cases', '--out', tmp(), '--marker', 'x').status, 2);
+  assert.equal(otf('generate', '--preset', 'hard-cases', '--out', tmp(), '--answers-out', 'x').status, 2);
 });
 
 test('presets lists both presets', () => {
