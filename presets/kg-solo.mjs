@@ -314,7 +314,7 @@ export function build({ seed = 11, clients = 30, days = 365, answers = options.a
   if (ui) {
     // The guide and config come after the cases: they hold no typed edge and link to no mentioned note, so the
     // cases stay as computed; stats below count the guide note.
-    for (const [p, text] of [...baseFiles(TODAY), ...obsidianFiles(), ['Hướng dẫn thử.md', guide(cases)]]) files.set(p, text);
+    for (const [p, text] of [...baseFiles(TODAY), ...obsidianFiles(schema), ['Hướng dẫn thử.md', guide(cases)]]) files.set(p, text);
   }
   files.set(answers, JSON.stringify({
     about: 'Answer key for the kg-solo preset of obsidian-test-fixture. Every expect is what lib/kg.mjs computes over the files; dates compare as ISO strings, validity windows are inclusive.',

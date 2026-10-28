@@ -8,6 +8,8 @@
 //   Breadcrumbs    4.22.1 (github.com/michaelpporter/breadcrumbs, minAppVersion 1.14.0): src/interfaces/settings.ts
 //                  (edge_fields, edge_field_groups, implied_relations.transitive), src/const/settings.ts (defaults);
 //                  main.ts merges data.json over defaults with deep_merge_objects, arrays are NOT merged
+//   Labelled Links 1.1.0 (github.com/mnaoumov/obsidian-labelled-links): data.json `relationDefinitions` as "a <-> b";
+//                  README and the plugin's own settings file, read 2026-10-28
 //   ExcaliBrain    0.2.19 (github.com/zsviczian/excalibrain): src/Types.ts `Hierarchy`, src/constants/constants.ts
 //                  DEFAULT_HIERARCHY_DEFINITION; settings = Object.assign({}, DEFAULT_SETTINGS, loadData()), shallow,
 //                  so `hierarchy` must be complete. Needs the Dataview and Excalidraw plugins.
@@ -227,7 +229,8 @@ export function breadcrumbsData() {
     edge_fields: BC_FIELDS.map((label) => ({ label })),
     edge_field_groups: BC_GROUPS,
     implied_relations: { transitive: [...PAIRS.flatMap(([a, b]) => [rule(a, b), rule(b, a)]), rule('related', 'related')] },
-    views: { page: { trail: { enabled: true, default_depth: 6, format: 'path', field_group_labels: ['ups'] }, prev_next: { enabled: false } } },
+    // The matrix lists every group (the default list would leave `conditions` and `conditioned_by` out).
+    views: { page: { trail: { enabled: true, default_depth: 6, format: 'path', field_group_labels: ['ups'] }, prev_next: { enabled: false } }, side: { matrix: { field_group_labels: BC_GROUPS.map((g) => g.label) } } },
   };
 }
 
@@ -243,7 +246,9 @@ export const EXCALIBRAIN_HIERARCHY = {
   hidden: ['hidden'],
 };
 
-export function obsidianFiles() {
+export const labelledLinksRegistry = (schema) => Object.entries(schema.edges).map(([k, e]) => `${k} <-> ${e.inverse}`);
+
+export function obsidianFiles(schema) {
   const f = new Map();
   f.set('.obsidian/app.json', j({ alwaysUpdateLinks: true, useMarkdownLinks: false, newLinkFormat: 'shortest' }));
   f.set('.obsidian/core-plugins.json', j({ 'file-explorer': true, 'global-search': true, switcher: true, backlink: true, outgoing_link: true, 'tag-pane': true, properties: true, bases: true, 'page-preview': true, outline: true }));
@@ -251,6 +256,9 @@ export function obsidianFiles() {
   f.set('.obsidian/types.json', j({ types: { valid_from: 'date', valid_to: 'date', start: 'date', date: 'date', value: 'number', year: 'number', aliases: 'aliases', tags: 'tags' } }));
   f.set('.obsidian/plugins/breadcrumbs/data.json', j(breadcrumbsData()));
   f.set('.obsidian/plugins/excalibrain/data.json', j({ hierarchy: EXCALIBRAIN_HIERARCHY }));
+  // Labelled Links (mnaoumov, 1.1.0): every link-valued property is a relation labelled by its name; the registry
+  // declares each pair once (`uses <-> used_by`) and the inverse is shown from the other end, never written.
+  f.set('.obsidian/plugins/labelled-links/data.json', j({ relationDefinitions: labelledLinksRegistry(schema) }));
   return f;
 }
 
@@ -273,8 +281,8 @@ const way1 = [
   ['nav-moc-children', 'Mở [[MOC Kinh doanh]]. Mở panel Breadcrumbs (matrix), nhóm `downs`.', 'MOC con (quan hệ ngược `child_moc`, chỉ ghi ở phía con).'],
   ['nav-up-not-moc', 'Mở [[Báo cáo tuần]]. Trail theo nhóm `ups`.', 'Khái niệm cha qua `up`; MOC chứa nó KHÔNG được hiện.'],
   ['relations-part-of', 'Mở [[Chiến dịch Tết Mộc]]. Panel Breadcrumbs, nhóm `downs`.', 'Phần của chiến dịch (`has_part`, ngược của `part_of`).'],
-  ['relations-symmetric', 'Mở [[Supabase]]. ExcaliBrain: node bạn (friend) cùng cấp.', '`related` chỉ ghi ở một phía; phải thấy cả hai chiều.'],
-  ['browse-local-view', 'Mở [[Dashboard doanh thu ABC]]. ExcaliBrain: cha ở trên, con ở dưới, cùng cấp hai bên.', 'Mọi quan hệ có loại quanh note, hai chiều. Lưu ý: note này chỉ có `client`, `uses`, không có `up`/`part_of`, nên ExcaliBrain chỉ dựng từ liên kết thường (liên kết xuôi là con, ngược là cha), không từ trường đã khai. Đối chiếu, không cần khớp từng khoá tên.'],
+  ['relations-symmetric', 'Mở [[Supabase]]. Ctrl+P, "Breadcrumbs: Open matrix view": panel bên PHẢI, mục `related`, hàng Webflow có chữ `i` (suy ra). Dòng đường đi ở đầu note chỉ hiện `up`, nên ở đó không có Webflow là bình thường.', '`related` chỉ ghi ở Webflow; Supabase phải thấy được. Tên mục trong panel là `related` (tên trường), không phải `sames`.'],
+  ['browse-local-view', 'Mở [[Dashboard doanh thu ABC]]. Labelled Links relations pane: OUTGOING và INCOMING: `uses` Metabase ở OUTGOING, còn `used_by` ghi ngược ở INCOMING (quan hệ ngược chỉ ghi ở phía dự án). (ExcaliBrain chỉ vẽ từ liên kết thường vì note này không có `up`/`part_of`.)', 'Mọi quan hệ có loại quanh note, hai chiều. Đối chiếu, không cần khớp từng khoá tên.'],
 ];
 const way2 = [
   ['identity-alias', 'Ctrl/Cmd+O, gõ `ABC Corp`.', 'Quick Switcher có nhảy tới đúng khách hàng không (qua alias)?'],
@@ -302,9 +310,9 @@ Vault này sinh bằng \`otf generate --preset kg-solo --ui\`. Dùng để thử
 ## Cài đặt (một lần)
 
 1. Obsidian 1.15 trở lên. Settings, Community plugins, tắt Restricted mode.
-2. Cài và bật: **Breadcrumbs** (4.22.1 trở lên), **Dataview**, **Excalidraw**, **ExcaliBrain**. Cấu hình đã nằm sẵn trong \`.obsidian/plugins/\`; vault không chứa code plugin.
+2. Cài và bật: **Breadcrumbs** (4.22.1 trở lên), **Labelled Links** (1.1.0 trở lên), **Dataview**, **Excalidraw**, **ExcaliBrain**. Cấu hình đã nằm sẵn trong \`.obsidian/plugins/\`; vault không chứa code plugin.
 3. Core plugin **Bases** đã bật sẵn. Nếu panel Breadcrumbs trống: lệnh "Breadcrumbs: Rebuild graph".
-4. Điện thoại: chép cả thư mục vault (kể cả \`.obsidian\`) sang máy, cài lại bốn plugin trên máy đó.
+4. Điện thoại: chép cả thư mục vault (kể cả \`.obsidian\`) sang máy, cài lại các plugin trên máy đó.
 
 ## Cách 1: dạo theo không gian
 

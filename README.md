@@ -7,8 +7,8 @@ Every word is generated. Same preset + same seed + same version gives byte-ident
 ## Install
 
 ```bash
-npm i -D github:vantt/obsidian-test-fixture#v0.6.0
-npx github:vantt/obsidian-test-fixture#v0.6.0 generate --preset personal-vault --seed 7 --out ./vault
+npm i -D github:vantt/obsidian-test-fixture#v0.7.0
+npx github:vantt/obsidian-test-fixture#v0.7.0 generate --preset personal-vault --seed 7 --out ./vault
 ```
 
 Not published on the npm registry. Pin a tag.

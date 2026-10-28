@@ -39,7 +39,7 @@ test('without --ui nothing of the UI layer is written', () => {
 test('--ui only adds files and appends embeds to client, project and factor notes', () => {
   const kgP = loadKg(readVault(plain), schema);
   const added = [...U.keys()].filter((f) => !P.has(f)).sort();
-  assert.deepEqual(added.filter((f) => !f.startsWith('Bases/')), ['.obsidian/app.json', '.obsidian/core-plugins.json', '.obsidian/plugins/breadcrumbs/data.json', '.obsidian/plugins/excalibrain/data.json', '.obsidian/types.json', 'Hướng dẫn thử.md']);
+  assert.deepEqual(added.filter((f) => !f.startsWith('Bases/')), ['.obsidian/app.json', '.obsidian/core-plugins.json', '.obsidian/plugins/breadcrumbs/data.json', '.obsidian/plugins/excalibrain/data.json', '.obsidian/plugins/labelled-links/data.json', '.obsidian/types.json', 'Hướng dẫn thử.md']);
   assert.deepEqual(added.filter((f) => f.startsWith('Bases/')), ['Bases/Claim theo yếu tố.base', 'Bases/Dự án.base', 'Bases/Hợp đồng đang chạy.base', 'Bases/Đầu mối hiện tại.base', 'Bases/Đề xuất LLM chờ duyệt.base']);
   for (const [f, text] of P) {
     if (f === '.kg-answers.json' || f === '.fixture-manifest.json') continue;
@@ -111,6 +111,14 @@ test('Breadcrumbs data.json: groups use declared fields, every field has its opp
     else { assert.ok(labels.includes(def.inverse), f); assert.ok(closes.has(`${f}>${def.inverse}`) && closes.has(`${def.inverse}>${f}`), f); }
   }
   for (const r of bc.implied_relations.transitive) assert.ok(r.close_reversed && labels.includes(r.close_field) && labels.includes(r.chain[0].field));
+});
+
+test('Breadcrumbs matrix lists every group; Labelled Links registry has one pair per schema edge', () => {
+  const bc = json('.obsidian/plugins/breadcrumbs/data.json');
+  assert.deepEqual(bc.views.side.matrix.field_group_labels, bc.edge_field_groups.map((g) => g.label));
+  const defs = json('.obsidian/plugins/labelled-links/data.json').relationDefinitions;
+  assert.deepEqual(defs, Object.entries(schema.edges).map(([k, e]) => `${k} <-> ${e.inverse}`));
+  assert.ok(defs.includes('uses <-> used_by') && defs.includes('client <-> has_project') && defs.includes('related <-> related'));
 });
 
 test('ExcaliBrain data.json: hierarchy is complete and its fields come from the schema or their inverses', () => {

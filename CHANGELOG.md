@@ -2,6 +2,10 @@
 
 Any change to generated output is a breaking change and needs a new minor version here, because downstream answer keys depend on it.
 
+## 0.7.0
+- `kg-solo --ui`: ships the Labelled Links settings (`relationDefinitions`: one `a <-> inverse` pair per schema edge), so every typed edge shows in both directions in its relations pane, including `uses`/`client`/`party` that the Breadcrumbs fields do not cover. The Breadcrumbs matrix view now lists every group (`conditions`, `conditioned_by` were left out by the default list). The guide says where to look in each plugin (matrix panel on the right, `related` heading, relations pane). `--ui` output changes; trees without `--ui` are unchanged.
+- Checked in Obsidian 1.15.0 with Labelled Links 1.1.0: the relations pane of Metabase, Supabase and Dashboard doanh thu ABC matches the answer key.
+
 ## 0.6.0
 - `kg-solo --ui`: fixes the "current contact" base. `!valid_to` matches nothing on a note without that property (measured on Obsidian 1.15.0); the validity formula now uses `valid_to.isEmpty()`. The guide records what was measured (the project view of a client shows 1 of 2 because `file.hasLink` does not follow aliases; ExcaliBrain builds from plain links for a note without `up`/`part_of`). Output of `--ui` changes; trees without `--ui` are unchanged.
 - Checked in Obsidian 1.15.0 with Breadcrumbs 4.22.1, ExcaliBrain 0.2.19, Dataview 0.5.68: all views of the four whole-vault bases equal the reference engine at 755 and 4,840 notes, plugin settings load, no errors.
