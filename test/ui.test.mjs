@@ -7,6 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { tmpDir } from './helpers.mjs';
 import { generate } from '../lib/index.mjs';
 import { loadKg, readVault, runQuery } from '../lib/kg.mjs';
 import { load, CORE_SCHEMA } from '../vendor/js-yaml.mjs';
@@ -14,7 +15,7 @@ import { BC_FIELDS, BC_GROUPS, EXCALIBRAIN_HIERARCHY } from '../presets/kg-solo-
 import { schema } from '../presets/kg-solo.mjs';
 
 const make = (options) => {
-  const out = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'otf-ui-')), 'v');
+  const out = path.join(tmpDir('otf-ui-'), 'v');
   generate({ preset: 'kg-solo', out, options });
   return out;
 };
@@ -159,7 +160,7 @@ test('guide: every exercise quotes its case id and that case\'s answer; hand-che
 });
 
 test('CLI: --ui flag writes the UI layer', () => {
-  const out = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'otf-ui-')), 'v');
+  const out = path.join(tmpDir('otf-ui-'), 'v');
   const r = spawnSync(process.execPath, [fileURLToPath(new URL('../bin/otf.mjs', import.meta.url)), 'generate', '--preset', 'kg-solo', '--ui', '--clients', '2', '--days', '10', '--out', out], { encoding: 'utf8' });
   assert.equal(r.status, 0, r.stderr);
   assert.ok(fs.existsSync(path.join(out, 'Bases/Dự án.base')));

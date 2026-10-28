@@ -6,13 +6,14 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import { tmpDir } from './helpers.mjs';
 import { generate } from '../lib/index.mjs';
 import { loadKg, readVault, runQuery } from '../lib/kg.mjs';
 import { buildGraph } from '../lib/graph.mjs';
 import { fileURLToPath } from 'node:url';
 
 const make = (options) => {
-  const out = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'otf-kg-')), 'v');
+  const out = path.join(tmpDir('otf-kg-'), 'v');
   generate({ preset: 'kg-solo', out, options });
   const key = JSON.parse(fs.readFileSync(path.join(out, '.kg-answers.json'), 'utf8'));
   return { out, key, expect: (id) => key.cases.find((c) => c.id === id).expect };

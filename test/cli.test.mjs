@@ -5,11 +5,11 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { parity } from './helpers.mjs';
+import { parity, tmpDir } from './helpers.mjs';
 
 const bin = fileURLToPath(new URL('../bin/otf.mjs', import.meta.url));
 const otf = (...a) => spawnSync(process.execPath, [bin, ...a], { encoding: 'utf8' });
-const tmp = () => path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'otf-')), 'v');
+const tmp = () => path.join(tmpDir('otf-'), 'v');
 
 test('generate, verify, tamper, verify', () => {
   const out = tmp();

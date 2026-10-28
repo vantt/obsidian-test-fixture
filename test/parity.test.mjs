@@ -8,7 +8,7 @@ import { generate } from '../lib/index.mjs';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { names, parity, vault } from './helpers.mjs';
+import { names, parity, vault, tmpDir } from './helpers.mjs';
 
 for (const name of names) {
   test(`tree hash: ${name}`, () => assert.equal(treeHash(vault(name)), parity[name].treeHash));
@@ -22,14 +22,14 @@ for (const name of names) {
 }
 
 test('same preset and seed twice: identical tree', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'otf-'));
+  const dir = tmpDir('otf-');
   const a = generate({ preset: 'personal-vault', out: path.join(dir, 'a'), options: { seed: 7 } });
   const b = generate({ preset: 'personal-vault', out: path.join(dir, 'b'), options: { seed: 7 } });
   assert.equal(a.treeHash, b.treeHash);
 });
 
 test('different seed changes the output', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'otf-'));
+  const dir = tmpDir('otf-');
   const a = generate({ preset: 'personal-vault', out: path.join(dir, 'a'), options: { seed: 8 } });
   assert.notEqual(a.treeHash, parity['personal-vault-seed7'].treeHash);
 });
@@ -41,7 +41,7 @@ test('long note is CRLF and file names are NFC', () => {
 });
 
 test('lab-dir and marker options keep parity defaults, rename when set', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'otf-'));
+  const dir = tmpDir('otf-');
   generate({ preset: 'personal-vault', out: path.join(dir, 'x'), options: { labDir: 'lab', marker: '.m' } });
   assert.ok(fs.existsSync(path.join(dir, 'x/lab/Target Note.md')));
   const m = JSON.parse(fs.readFileSync(path.join(dir, 'x/.m'), 'utf8'));
@@ -50,7 +50,7 @@ test('lab-dir and marker options keep parity defaults, rename when set', () => {
 });
 
 test('answers-out moves the key out of the vault, marker keeps only a flag', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'otf-'));
+  const dir = tmpDir('otf-');
   const key = path.join(dir, 'state', 'answer-key.json');
   const r = generate({ preset: 'personal-vault', out: path.join(dir, 'x'), options: { answersOut: key } });
   assert.deepEqual(r.outside, [key]);
@@ -66,7 +66,7 @@ test('answers-out moves the key out of the vault, marker keeps only a flag', () 
 });
 
 test('answers-out inside the vault is refused; default manifest has no answersOut', () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'otf-'));
+  const dir = tmpDir('otf-');
   assert.throws(() => generate({ preset: 'personal-vault', out: path.join(dir, 'x'), options: { answersOut: path.join(dir, 'x/key.json') } }), /^Error: refusing:/);
   assert.ok(!fs.existsSync(path.join(dir, 'x')));
   const m = JSON.parse(fs.readFileSync(path.join(vault('personal-vault-seed7'), '.fixture-manifest.json'), 'utf8'));
