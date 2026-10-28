@@ -76,6 +76,8 @@ test('bases are valid YAML with the documented keys, and every filter and column
       for (const s of v.filters?.and ?? []) assert.equal(typeof s, 'string');
       for (const o of v.order.filter((x) => x.startsWith('formula.'))) assert.ok(b.formulas?.[o.slice(8)], o);
     }
+    // Measured on Obsidian 1.15.0: `!prop` on a missing property matches nothing; isEmpty() works.
+    assert.ok(!/!\s*[a-z_]+\s*(\|\||\)|$)/m.test(text), `${f}: negation of a bare property`);
     // A view that uses `this` must be the page view, and the page view must use it.
     for (const v of b.views) assert.equal(JSON.stringify(v).includes('this.file'), v.name === 'Của trang này', `${f}: ${v.name}`);
   }

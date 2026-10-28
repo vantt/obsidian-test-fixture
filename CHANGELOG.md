@@ -2,6 +2,10 @@
 
 Any change to generated output is a breaking change and needs a new minor version here, because downstream answer keys depend on it.
 
+## 0.6.0
+- `kg-solo --ui`: fixes the "current contact" base. `!valid_to` matches nothing on a note without that property (measured on Obsidian 1.15.0); the validity formula now uses `valid_to.isEmpty()`. The guide records what was measured (the project view of a client shows 1 of 2 because `file.hasLink` does not follow aliases; ExcaliBrain builds from plain links for a note without `up`/`part_of`). Output of `--ui` changes; trees without `--ui` are unchanged.
+- Checked in Obsidian 1.15.0 with Breadcrumbs 4.22.1, ExcaliBrain 0.2.19, Dataview 0.5.68: all views of the four whole-vault bases equal the reference engine at 755 and 4,840 notes, plugin settings load, no errors.
+
 ## 0.5.0
 - `kg-solo --ui` (library option `ui`): writes `.obsidian/` config (core Bases, property types, Breadcrumbs and ExcaliBrain settings), five `.base` files, embedded views at the end of every organization, project and factor note, and `Hướng dẫn thử.md` (exercises tied to answer-key cases). No plugin code.
 - Without `--ui` the generated tree is unchanged (parity tests); the manifest options list gains `ui: false`, and the manifest is outside the tree hash. With `--ui` the answer key has the same cases and answers; only `stats` counts the guide note.

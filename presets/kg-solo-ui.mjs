@@ -23,7 +23,7 @@ const ASOF = (today) => `date("${today}")`;
 
 const current = (today) => `formulas:
   asof: '${ASOF(today)}'
-  hieu_luc: 'valid_from <= formula.asof && (!valid_to || valid_to >= formula.asof)'
+  hieu_luc: 'valid_from <= formula.asof && (valid_to.isEmpty() || valid_to >= formula.asof)'
 `;
 
 export function baseFiles(today) {
@@ -274,11 +274,11 @@ const way1 = [
   ['nav-up-not-moc', 'Mở [[Báo cáo tuần]]. Trail theo nhóm `ups`.', 'Khái niệm cha qua `up`; MOC chứa nó KHÔNG được hiện.'],
   ['relations-part-of', 'Mở [[Chiến dịch Tết Mộc]]. Panel Breadcrumbs, nhóm `downs`.', 'Phần của chiến dịch (`has_part`, ngược của `part_of`).'],
   ['relations-symmetric', 'Mở [[Supabase]]. ExcaliBrain: node bạn (friend) cùng cấp.', '`related` chỉ ghi ở một phía; phải thấy cả hai chiều.'],
-  ['browse-local-view', 'Mở [[Dashboard doanh thu ABC]]. ExcaliBrain: cha ở trên, con ở dưới, cùng cấp hai bên.', 'Mọi quan hệ có loại quanh note, hai chiều (đối chiếu, không cần khớp từng khoá tên).'],
+  ['browse-local-view', 'Mở [[Dashboard doanh thu ABC]]. ExcaliBrain: cha ở trên, con ở dưới, cùng cấp hai bên.', 'Mọi quan hệ có loại quanh note, hai chiều. Lưu ý: note này chỉ có `client`, `uses`, không có `up`/`part_of`, nên ExcaliBrain chỉ dựng từ liên kết thường (liên kết xuôi là con, ngược là cha), không từ trường đã khai. Đối chiếu, không cần khớp từng khoá tên.'],
 ];
 const way2 = [
   ['identity-alias', 'Ctrl/Cmd+O, gõ `ABC Corp`.', 'Quick Switcher có nhảy tới đúng khách hàng không (qua alias)?'],
-  ['search-client-report', 'Gõ `abc`, mở khách hàng. Kéo xuống mục "Tổng hợp" (ba view nhúng: đầu mối, hợp đồng, dự án).', 'Bốn câu trong một trang. Dự án phải có 2 mục; nếu chỉ thấy 1 là view hụt vì dự án ghi khách bằng alias (ghi vào BT4).'],
+  ['search-client-report', 'Gõ `abc`, mở khách hàng. Kéo xuống mục "Tổng hợp" (ba view nhúng: đầu mối, hợp đồng, dự án).', 'Bốn câu trong một trang. Đáp án khoá là 2 dự án, nhưng đã đo trên Obsidian 1.15.0: view chỉ ra 1 (Website ABC 2025), thiếu dự án ghi khách bằng alias vì `file.hasLink` không nối alias (BT4). Nếu bạn thấy 2 thì Obsidian đã đổi, ghi lại.'],
   ['time-contact-now', 'Trong trang khách hàng đó, đọc view "Đầu mối hiện tại".', 'Đầu mối bây giờ (vào view bằng `asof` cố định 2026-10-15). Người cũ không được hiện.'],
   ['time-price-now', 'Gõ `bảng giá`, mở hai bảng giá, so `valid_from` / `valid_to`.', 'Bảng giá đang áp dụng.'],
   ['time-decisions-now', 'Gõ `quyết định`, đọc `valid_from` / `valid_to` / `superseded_by` của từng cái.', 'Các quyết định còn hiệu lực (quyết định đã bị đảo thì không).'],
