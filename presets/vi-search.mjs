@@ -116,23 +116,24 @@ const TONE_PAIRS = [
   ['mua bán', 'Mua bán xe cũ', 'múa bán', 'Múa bán nguyệt'],
 ];
 
-// [query compound, target title, neighbouring compound, neighbour title]: the neighbour shares one syllable.
+// [query compound, target title, neighbouring compound, neighbour title]: the neighbour shares one syllable. Titles do not
+// contain either compound, so only the body tells the notes apart.
 const COMPOUND_PAIRS = [
-  ['kế toán', 'Kế toán tổng hợp', 'toán học', 'Toán học vui'],
-  ['ngân hàng', 'Vay vốn ngân hàng', 'hàng không', 'Chuyến bay hàng không'],
-  ['học sinh', 'Học sinh cấp ba', 'sinh học', 'Sinh học tế bào'],
-  ['giáo viên', 'Giáo viên chủ nhiệm', 'viên chức', 'Thi tuyển viên chức'],
-  ['thị trường', 'Thị trường bất động sản', 'trường học', 'Trường học vùng cao'],
-  ['bệnh viện', 'Bệnh viện tuyến huyện', 'viện trợ', 'Viện trợ nhân đạo'],
-  ['thành phố', 'Thành phố ven biển', 'phố cổ', 'Phố cổ về đêm'],
-  ['thể thao', 'Thể thao ngoài trời', 'thao tác', 'Thao tác sao chép'],
-  ['xe máy', 'Xe máy điện', 'máy bay', 'Máy bay giấy'],
-  ['lãi suất', 'Lãi suất cho vay', 'suất ăn', 'Suất ăn công nghiệp'],
-  ['dịch vụ', 'Dịch vụ giao nhận', 'vụ án', 'Vụ án nổi tiếng'],
-  ['cà chua', 'Cà chua bi', 'chua ngọt', 'Món chua ngọt'],
-  ['nhà hàng', 'Nhà hàng chay', 'hàng xóm', 'Hàng xóm cũ'],
-  ['đầu tư', 'Đầu tư vàng', 'tư vấn', 'Tư vấn pháp lý'],
-  ['bản tin', 'Bản tin buổi sáng', 'tin đồn', 'Tin đồn thất thiệt'],
+  ['kế toán', 'Sổ cái cuối tháng', 'toán học', 'Bài tập về nhà'],
+  ['ngân hàng', 'Khoản vay mua nhà', 'hàng không', 'Chuyến bay đêm'],
+  ['học sinh', 'Lớp mười hai', 'sinh học', 'Tiết thực hành'],
+  ['giáo viên', 'Cô chủ nhiệm', 'viên chức', 'Đợt tuyển dụng'],
+  ['thị trường', 'Giá nhà đất', 'trường học', 'Điểm trường vùng cao'],
+  ['bệnh viện', 'Tuyến huyện', 'viện trợ', 'Gói nhân đạo'],
+  ['thành phố', 'Ven biển', 'phố cổ', 'Buổi tối'],
+  ['thể thao', 'Ngoài trời', 'thao tác', 'Sao chép dữ liệu'],
+  ['xe máy', 'Chạy điện', 'máy bay', 'Gấp giấy'],
+  ['lãi suất', 'Cho vay tiêu dùng', 'suất ăn', 'Bếp công nghiệp'],
+  ['dịch vụ', 'Giao nhận nội thành', 'vụ án', 'Nổi tiếng một thời'],
+  ['cà chua', 'Salad mùa hè', 'chua ngọt', 'Món xào'],
+  ['nhà hàng', 'Thực đơn chay', 'hàng xóm', 'Chuyện cũ'],
+  ['đầu tư', 'Vàng và bạc', 'tư vấn', 'Pháp lý nhà ở'],
+  ['bản tin', 'Buổi sáng', 'tin đồn', 'Thất thiệt'],
 ];
 
 // [note title, query, note phrase that must exist]
@@ -189,23 +190,24 @@ const PEOPLE_ACCENTED_QUERY = [false, false, false, false, true, true, true, tru
 const PLACES = ['Đà Lạt', 'Quảng Ngãi', 'Cần Thơ', 'Hà Tĩnh', 'Bà Rịa', 'Phan Thiết', 'Hội An'];
 const PLACE_ACCENTED_QUERY = [false, false, false, false, true, true, true];
 
-// [group, note title, note body sentence subject, query, query term]. Group is "term = term = term" for the lexicon.
+// [group, note title, note sentence with the first form, query]. Group is "term = term = term" for the lexicon. The query is
+// another form of the group alone; the title does not contain any form.
 const SYNONYM = [
-  ['ô tô = xe hơi = car', 'Bảo dưỡng ô tô định kỳ', 'Đưa ô tô đi thay nhớt và kiểm tra phanh sau mỗi năm nghìn cây số.', 'bảo dưỡng xe hơi định kỳ'],
-  ['điện thoại = phone = smartphone', 'Chọn mua điện thoại cho bố mẹ', 'Điện thoại cho bố mẹ cần chữ to, loa lớn và pin trâu.', 'chọn mua phone cho bố mẹ'],
-  ['lương = salary = tiền công', 'Bảng lương tháng mười', 'Bảng lương ghi đủ phụ cấp, thưởng và các khoản trừ trong tháng.', 'bảng tiền công tháng mười'],
-  ['cà phê = coffee = cafe', 'Mở quán cà phê nhỏ', 'Quán cà phê nhỏ cần mặt bằng vừa phải, máy xay tốt và vài món bánh.', 'mở quán coffee nhỏ'],
-  ['bác sĩ = thầy thuốc = doctor', 'Khám bác sĩ gia đình', 'Bác sĩ gia đình theo dõi sức khoẻ cả nhà và giữ hồ sơ lâu dài.', 'khám thầy thuốc gia đình'],
-  ['máy tính xách tay = laptop = notebook', 'Mua máy tính xách tay cho sinh viên', 'Máy tính xách tay cho sinh viên nên nhẹ, bền và pin dùng được cả buổi.', 'mua laptop cho sinh viên'],
-  ['sinh tố = smoothie', 'Công thức sinh tố bơ', 'Sinh tố bơ xay cùng sữa đặc, đá và một ít đường.', 'công thức smoothie bơ'],
-  ['hợp đồng = contract = giao kèo', 'Soạn hợp đồng bán xe', 'Hợp đồng bán xe cần ghi giá, thời hạn sang tên và trách nhiệm hai bên.', 'soạn giao kèo bán xe'],
-  ['thư điện tử = email = e-mail', 'Gửi thư điện tử cho đối tác', 'Thư điện tử gửi đối tác nên có tiêu đề rõ và tóm tắt ở dòng đầu.', 'gửi email cho đối tác'],
-  ['tiền tiết kiệm = savings = tiền gửi', 'Sổ tiền tiết kiệm của con', 'Sổ tiền tiết kiệm của con ghi từng lần gửi và lãi cộng dồn.', 'sổ savings của con'],
-  ['mật khẩu = password = mã bí mật', 'Lưu mật khẩu an toàn', 'Mật khẩu dài và khác nhau cho từng nơi đăng nhập sẽ an toàn hơn.', 'lưu password an toàn'],
-  ['chi phí = cost = kinh phí', 'Cắt giảm chi phí vận hành', 'Chi phí vận hành giảm khi gom đơn hàng và bỏ những khoản trùng lặp.', 'cắt giảm kinh phí vận hành'],
-  ['học bổng = scholarship', 'Xin học bổng du học', 'Học bổng du học yêu cầu bài luận, thư giới thiệu và bảng điểm.', 'xin scholarship du học'],
-  ['thực tập sinh = intern = tập sự', 'Tuyển thực tập sinh mùa hè', 'Thực tập sinh mùa hè được giao việc nhỏ và có người kèm cặp.', 'tuyển intern mùa hè'],
-  ['phần mềm = software = chương trình', 'Cài đặt phần mềm văn phòng', 'Phần mềm văn phòng cần cài cùng bộ gõ và phông chữ tiếng Việt.', 'cài đặt software văn phòng'],
+  ['ô tô = xe hơi = car', 'Việc cuối năm', 'Đưa ô tô đi thay nhớt và kiểm tra phanh sau mỗi năm nghìn cây số.', 'xe hơi'],
+  ['điện thoại = phone = smartphone', 'Quà cho bố mẹ', 'Điện thoại cho bố mẹ cần chữ to, loa lớn và pin trâu.', 'phone'],
+  ['lương = salary = tiền công', 'Cuối tháng mười', 'Bảng lương ghi đủ phụ cấp, thưởng và các khoản trừ trong tháng.', 'tiền công'],
+  ['cà phê = coffee = cafe', 'Dự án nhỏ', 'Quán cà phê nhỏ cần mặt bằng vừa phải, máy xay tốt và vài món bánh.', 'coffee'],
+  ['bác sĩ = thầy thuốc = doctor', 'Lịch hẹn gia đình', 'Bác sĩ gia đình theo dõi sức khoẻ cả nhà và giữ hồ sơ lâu dài.', 'thầy thuốc'],
+  ['máy tính xách tay = laptop = notebook', 'Chuẩn bị nhập học', 'Máy tính xách tay cho sinh viên nên nhẹ, bền và pin dùng được cả buổi.', 'laptop'],
+  ['sinh tố = smoothie', 'Công thức mùa hè', 'Sinh tố bơ xay cùng sữa đặc, đá và một ít đường.', 'smoothie'],
+  ['hợp đồng = contract = giao kèo', 'Giấy tờ cần ký', 'Hợp đồng bán xe cần ghi giá, thời hạn sang tên và trách nhiệm hai bên.', 'giao kèo'],
+  ['thư điện tử = email = e-mail', 'Liên lạc đối tác', 'Thư điện tử gửi đối tác nên có tiêu đề rõ và tóm tắt ở dòng đầu.', 'email'],
+  ['tiền tiết kiệm = savings = tiền gửi', 'Của để dành cho con', 'Sổ tiền tiết kiệm của con ghi từng lần gửi và lãi cộng dồn.', 'savings'],
+  ['mật khẩu = password = mã bí mật', 'An toàn cá nhân', 'Mật khẩu dài và khác nhau cho từng nơi đăng nhập sẽ an toàn hơn.', 'password'],
+  ['chi phí = cost = kinh phí', 'Tiết giảm vận hành', 'Chi phí vận hành giảm khi gom đơn hàng và bỏ những khoản trùng lặp.', 'kinh phí'],
+  ['học bổng = scholarship', 'Du học sau đại học', 'Học bổng du học yêu cầu bài luận, thư giới thiệu và bảng điểm.', 'scholarship'],
+  ['thực tập sinh = intern = tập sự', 'Mùa hè năm nay', 'Thực tập sinh mùa hè được giao việc nhỏ và có người kèm cặp.', 'intern'],
+  ['phần mềm = software = chương trình', 'Máy văn phòng', 'Phần mềm văn phòng cần cài cùng bộ gõ và phông chữ tiếng Việt.', 'chương trình'],
 ];
 
 // [abbreviation, full form, note title, note sentence with the full form, query with the abbreviation]
