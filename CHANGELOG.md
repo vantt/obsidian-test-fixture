@@ -2,6 +2,9 @@
 
 Any change to generated output is a breaking change and needs a new minor version here, because downstream answer keys depend on it.
 
+## 0.10.0
+- `vi-search`: `vi-unaccented` and `vi-dd` now query clusters of 25 near-identical notes that differ in one key term (a dish, a street) and have numbered titles. Before, each query phrase was also the note title, and upstream search already reached Hit@5 0.93 and 0.87 through the title and the vector branch, so the category could not show what a lexical fold adds. The unaccented key terms use only syllables with a shape mark plus a tone, which `unicode61` does not fold (the single-mark ones it does), and every dd term has a đ. The generator also checks that the folded query identifies one note. Both categories carry `query_accented` (the query with its marks), for a reachability check. `vi-unaccented` no longer shares notes with `vi-accented`. The tree and the golden set change; other presets are unchanged.
+
 ## 0.9.0
 - `vi-search`: the notes of `vi-compound` and `vi-synonym` no longer carry the query phrase in their title (only the body tells them apart), and a `vi-synonym` query is another form of the group alone. The first baseline showed both categories already at nDCG@5 1.0 with upstream search, which left no room to measure a language pack. The tree and the golden set of `vi-search` change; other presets are unchanged.
 

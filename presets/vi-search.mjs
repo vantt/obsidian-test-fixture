@@ -1,4 +1,4 @@
-// Vietnamese search preset: about 330 synthetic notes plus a golden set (17 categories x 15 queries) in the
+// Vietnamese search preset: about 360 synthetic notes plus a golden set (17 categories x 15 queries) in the
 // eval format of obsidian-hybrid-search ({id, query, relevant_paths, partial_paths, category, notes}) and a
 // sample lexicon at _ohs/lexicon.md. Every word is generated or hand-written for this preset; no real notes.
 // The golden set is not inside the vault: with `answersOut` it is written to that file, as for personal-vault.
@@ -6,7 +6,7 @@
 import { createRng } from '../lib/prng.mjs';
 
 export const name = 'vi-search';
-export const description = 'About 330 Vietnamese notes, a lexicon file and a golden set of 17 query categories x 15 queries for search evals.';
+export const description = 'About 360 Vietnamese notes, a lexicon file and a golden set of 17 query categories x 15 queries for search evals.';
 export const options = {
   seed: { default: 11, description: 'PRNG seed (filler text and note order only; the golden set does not depend on it)' },
   answersOut: { default: '', outside: true, description: 'write the golden set (JSON) to this file outside the vault' },
@@ -77,10 +77,20 @@ const SET_A = [
 // Snippet queries: a middle slice of the SET_A phrase (without marks) that must appear with its marks in the snippet.
 const SNIPPET_SLICE = [[1, 3], [1, 3], [1, 3], [0, 2], [1, 3], [1, 3], [1, 3], [1, 3], [1, 3], [1, 3], [1, 3], [1, 3], [1, 3], [1, 3], [1, 3]];
 
-const SET_D = [
-  'đường đi bộ ven sông', 'đầu mùa mưa', 'đồng hồ cơ cổ điển', 'điện thoại cũ đổi mới', 'đám cưới ngoài trời',
-  'địa chỉ giao nhận', 'đặt lịch hẹn khám bệnh', 'đào tạo nhân sự mới', 'đánh giá hiệu suất nhóm', 'độc giả trung thành',
-  'đêm khuya học bài', 'đồ uống mùa hè', 'đạo diễn phim ngắn', 'điểm danh tự động', 'đổi giờ làm việc',
+// Clusters for vi-unaccented and vi-dd. Every note of a cluster has the same body apart from one key term (a dish, a street)
+// and a neutral numbered title, so only the key term tells the notes apart. SQLite's unicode61 folds a mark only when it is
+// the single mark of a letter: "ế", "ữ", "ợ" (shape mark plus tone) and "đ" never fold. The unaccented key terms are made of
+// such syllables only, and every dd key term has a đ, so an unaccented query cannot reach its note through the lexical
+// index. The first 15 terms of each list are queried; the last 10 are only distractors.
+const UNACCENTED_TERMS = [
+  'nước mắm', 'ốc nướng', 'ếch nấu', 'mướp hấp', 'bưởi hồng', 'sữa nếp', 'bắp nướng', 'mứt cốm', 'nếp cẩm', 'lẩu ếch',
+  'rượu nếp', 'phở sườn', 'chuối nướng', 'mực nướng', 'cuốn nấm',
+  'mầm hấp', 'hến hấp', 'ốc hấp', 'mứt sấu', 'cốt lẩu', 'bột nếp', 'nếp nướng', 'mực hấp', 'nấm nướng', 'sườn nướng',
+];
+const DD_TERMS = [
+  'Đồng Khởi', 'Điện Biên Phủ', 'Đinh Tiên Hoàng', 'Đề Thám', 'Đội Cấn', 'Đào Duy Từ', 'Đặng Dung', 'Đoàn Thị Điểm', 'Độc Lập', 'Đại Cồ Việt',
+  'Đê La Thành', 'Đông Các', 'Đỗ Quang', 'Đặng Tất', 'Đinh Công Tráng',
+  'Đồng Nai', 'Đồng Xoài', 'Đặng Thai Mai', 'Đào Tấn', 'Đinh Bộ Lĩnh', 'Đỗ Hành', 'Đốc Ngữ', 'Đường Thành', 'Đặng Văn Ngữ', 'Đoàn Văn Bơ',
 ];
 
 // Written with the y spelling; the query uses the i spelling for even indexes and the note uses the i spelling for odd ones.
@@ -322,12 +332,11 @@ export function build({ seed = 11, answersOut = options.answersOut.default } = {
   const checks = [];  // run after all notes exist
   const expect = (phrase, expected) => checks.push([phrase, expected]);
 
-  // 1. Set A: accented, unaccented, partial accent, telex, typo, snippet share the same 15 notes.
+  // 1. Set A: accented, partial accent, telex, typo, snippet share the same 15 notes.
   const setA = SET_A.map((phrase) => note(cap(phrase), topicBody(phrase)));
   SET_A.forEach((phrase, i) => {
     expect(phrase, [setA[i]]);
     add('vi-accented', phrase, [setA[i]], {}, 'Query is the accented phrase of the note.');
-    add('vi-unaccented', strip(phrase), [setA[i]], {}, 'Query is the phrase of the note without any diacritics.');
     add('vi-partial-accent', partialAccent(phrase), [setA[i]], {}, 'First word keeps its marks, the other words lose them.');
     add('vi-telex', telex(phrase), [setA[i]], {}, 'Query is the phrase typed in Telex without composing it.');
     add('vi-typo', typo(phrase), [setA[i]], {}, 'Unaccented phrase with the last two letters of two words swapped.');
@@ -338,9 +347,23 @@ export function build({ seed = 11, answersOut = options.answersOut.default } = {
       `Snippet must be original text with marks and contain "${slice.join(' ')}".`);
   });
 
-  // 2. Words with đ, queried without diacritics.
-  const setD = SET_D.map((phrase) => note(cap(phrase), topicBody(phrase)));
-  SET_D.forEach((phrase, i) => { expect(phrase, [setD[i]]); add('vi-dd', strip(phrase), [setD[i]], {}, 'Phrase contains đ; the query writes it as d.'); });
+  // 2. Unaccented and dd clusters: 25 near-identical notes each, 15 queried.
+  const cluster = (terms, title, body, category, noteText) => {
+    const rels = terms.map((t, i) => note(`${title} ${String(i + 1).padStart(2, '0')}`, body(t)));
+    terms.forEach((t, i) => {
+      expect(t, [rels[i]]);
+      if (i >= 15) return;
+      foldChecks.push([t, rels[i]]);
+      add(category, strip(t), [rels[i]], { query_accented: nfc(t) }, noteText);
+    });
+  };
+  const foldChecks = [];
+  cluster(UNACCENTED_TERMS, 'Ghi chép món ăn',
+    (t) => `Hôm nay mình ghi lại về ${t}. Mình nhớ ${t} nhất vào những buổi chiều cuối tuần, cả nhà ngồi ăn cùng nhau.`,
+    'vi-unaccented', 'Query is a dish name without diacritics; 24 other notes have the same text with another dish name and the title does not name the dish.');
+  cluster(DD_TERMS, 'Ghi chép địa điểm',
+    (t) => `Hôm nay mình ghi lại về phố ${t}. Mình nhớ phố ${t} nhất vào những buổi chiều cuối tuần, đi dạo cùng cả nhà.`,
+    'vi-dd', 'Query is a street name with đ written as d; 24 other notes have the same text with another street and the title does not name the street.');
 
   // 3. y/i spelling.
   SET_IY.forEach((y, i) => {
@@ -434,6 +457,12 @@ export function build({ seed = 11, answersOut = options.answersOut.default } = {
   }
 
   for (const [phrase, expected] of checks) expectNotes(phrase, expected);
+  // The folded query must also identify one note only, or the query would be ambiguous even for a perfect fold.
+  for (const [term, rel] of foldChecks) {
+    const q = strip(term).toLowerCase();
+    const found = notes.filter((n) => strip(n.text).includes(q)).map((n) => n.path);
+    if (found.length !== 1 || found[0] !== rel) problems.push(`folded "${q}" is in ${JSON.stringify(found.slice(0, 3))}, expected only ${rel}`);
+  }
   if (problems.length) throw new Error(`vi-search: golden set does not match the corpus:\n${problems.join('\n')}`);
 
   // 13. Lexicon (format fixed by the project: three sections, one group per line, joined by " = ").

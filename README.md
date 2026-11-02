@@ -75,7 +75,7 @@ When an agent under test works on the vault, keep the key out of its reach: `--a
 otf generate --preset personal-vault --git --out ./vault-synth --answers-out ~/.local/state/my-eval/answer-key.json
 ```
 
-### `vi-search` (329 files: 328 notes and a lexicon)
+### `vi-search` (364 files: 363 notes and a lexicon)
 
 A Vietnamese vault for evaluating search: accent-insensitive matching, tone and spelling variants, Telex, typos, synonyms, abbreviations, aliases, snippets. Options: `--seed` (11; changes filler text and nothing in the golden set), `--answers-out` (none).
 
@@ -83,10 +83,11 @@ A Vietnamese vault for evaluating search: accent-insensitive matching, tone and 
 
 | Category | What the query does |
 |---|---|
-| `vi-accented`, `vi-unaccented`, `vi-partial-accent` | the same 15 phrases with all marks, none, or marks on the first word only |
+| `vi-accented`, `vi-partial-accent` | the same 15 phrases with all marks, or marks on the first word only |
+| `vi-unaccented` | 15 dish names typed without marks; the vault holds 25 notes with the same text and a different dish each, titles are numbered. Every syllable of the dish names has a shape mark plus a tone (`nước mắm`), which SQLite `unicode61` does not fold. Entries also carry `query_accented` |
 | `vi-telex`, `vi-typo` | the same 15 phrases typed in Telex, or unaccented with two letter swaps |
 | `vi-snippet` | two words of those phrases, unaccented; the snippet must show the original marked text |
-| `vi-dd` | phrases with đ, typed with d |
+| `vi-dd` | 15 street names with đ typed with d, among 25 notes with the same text and a different street; entries also carry `query_accented` |
 | `vi-iy` | `kĩ` for `kỹ` and back (the note and the query use different spellings) |
 | `vi-tone-placement` | `hoà` for `hòa` and back |
 | `vi-tone-precision` | a note about `bán hàng` next to a note about `bạn hàng` |
