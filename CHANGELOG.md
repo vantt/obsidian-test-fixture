@@ -2,6 +2,9 @@
 
 Any change to generated output is a breaking change and needs a new minor version here, because downstream answer keys depend on it.
 
+## 0.11.0
+- `vi-search`: `vi-compound` gains 15 harder queries (30 in all; the golden set has 270). With 0.10.0 the category was already at nDCG@5 1.0 for a language pack without word segmentation, so it could not show what segmentation adds. Each new case has a compound that is not in the sample lexicon; the target note has it once, and three distractor notes have both syllables more often, reversed or apart. Five queries are the compound, five the compound without marks, five the compound after a verb phrase that only the target has; the entry's `hard` field says which. The 60 new notes are generated after all others without rng calls, so every note and golden entry of 0.10.0 is unchanged; the tree and the golden set grow. Other presets are unchanged.
+
 ## 0.10.0
 - `vi-search`: `vi-unaccented` and `vi-dd` now query clusters of 25 near-identical notes that differ in one key term (a dish, a street) and have numbered titles. Before, each query phrase was also the note title, and upstream search already reached Hit@5 0.93 and 0.87 through the title and the vector branch, so the category could not show what a lexical fold adds. The unaccented key terms use only syllables with a shape mark plus a tone, which `unicode61` does not fold (the single-mark ones it does), and every dd term has a đ. The generator also checks that the folded query identifies one note. Both categories carry `query_accented` (the query with its marks), for a reachability check. `vi-unaccented` no longer shares notes with `vi-accented`. The tree and the golden set change; other presets are unchanged.
 

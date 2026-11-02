@@ -75,11 +75,11 @@ When an agent under test works on the vault, keep the key out of its reach: `--a
 otf generate --preset personal-vault --git --out ./vault-synth --answers-out ~/.local/state/my-eval/answer-key.json
 ```
 
-### `vi-search` (364 files: 363 notes and a lexicon)
+### `vi-search` (424 files: 423 notes and a lexicon)
 
 A Vietnamese vault for evaluating search: accent-insensitive matching, tone and spelling variants, Telex, typos, synonyms, abbreviations, aliases, snippets. Options: `--seed` (11; changes filler text and nothing in the golden set), `--answers-out` (none).
 
-`--answers-out <file>` writes the golden set, a JSON array of 255 queries in the eval format of obsidian-hybrid-search (`{id, query, relevant_paths, partial_paths, category, notes}`; `vi-snippet` entries also carry `snippet_contains` and `matched_terms`). Paths are relative to the vault root. The golden set is never inside the vault. Each of the 17 categories has 15 queries and exactly one relevant note:
+`--answers-out <file>` writes the golden set, a JSON array of 270 queries in the eval format of obsidian-hybrid-search (`{id, query, relevant_paths, partial_paths, category, notes}`; `vi-snippet` entries also carry `snippet_contains` and `matched_terms`). Paths are relative to the vault root. The golden set is never inside the vault. Each of the 17 categories has 15 queries (`vi-compound` 30) and exactly one relevant note:
 
 | Category | What the query does |
 |---|---|
@@ -91,7 +91,7 @@ A Vietnamese vault for evaluating search: accent-insensitive matching, tone and 
 | `vi-iy` | `kĩ` for `kỹ` and back (the note and the query use different spellings) |
 | `vi-tone-placement` | `hoà` for `hòa` and back |
 | `vi-tone-precision` | a note about `bán hàng` next to a note about `bạn hàng` |
-| `vi-compound` | a note about `học sinh` next to a note about `sinh học` |
+| `vi-compound` | a note about `học sinh` next to a note about `sinh học`; plus 15 harder cases (entries carry `hard`: `accented`, `folded` or `context`) whose compound is not in the lexicon: the target note has it once, and three distractor notes (titles `Nhật ký NN`) have both syllables more often, reversed or apart |
 | `vi-mixed-en` | Vietnamese notes with English words, queried in either language |
 | `vi-semantic` | a paraphrase with no content word in common with the note |
 | `vi-names` | fictional person names (each with a near-identical decoy) and place names, with or without marks |

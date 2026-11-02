@@ -1,4 +1,4 @@
-// Vietnamese search preset: about 360 synthetic notes plus a golden set (17 categories x 15 queries) in the
+// Vietnamese search preset: about 420 synthetic notes plus a golden set (17 categories x 15 queries, vi-compound 30) in the
 // eval format of obsidian-hybrid-search ({id, query, relevant_paths, partial_paths, category, notes}) and a
 // sample lexicon at _ohs/lexicon.md. Every word is generated or hand-written for this preset; no real notes.
 // The golden set is not inside the vault: with `answersOut` it is written to that file, as for personal-vault.
@@ -6,7 +6,7 @@
 import { createRng } from '../lib/prng.mjs';
 
 export const name = 'vi-search';
-export const description = 'About 360 Vietnamese notes, a lexicon file and a golden set of 17 query categories x 15 queries for search evals.';
+export const description = 'About 420 Vietnamese notes, a lexicon file and a golden set of 17 query categories x 15 queries (vi-compound 30) for search evals.';
 export const options = {
   seed: { default: 11, description: 'PRNG seed (filler text and note order only; the golden set does not depend on it)' },
   answersOut: { default: '', outside: true, description: 'write the golden set (JSON) to this file outside the vault' },
@@ -16,6 +16,9 @@ export const categories = [
   'vi-accented', 'vi-unaccented', 'vi-partial-accent', 'vi-tone-placement', 'vi-iy', 'vi-dd', 'vi-tone-precision',
   'vi-compound', 'vi-mixed-en', 'vi-semantic', 'vi-names', 'vi-telex', 'vi-typo', 'vi-synonym', 'vi-abbr', 'vi-alias', 'vi-snippet',
 ];
+
+/** Queries per category: 15, and 30 for vi-compound (15 plus 15 harder ones). */
+export const queriesPer = (category) => (category === 'vi-compound' ? 30 : 15);
 
 // ---- query transforms ------------------------------------------------------------------------------------------
 
@@ -144,6 +147,24 @@ const COMPOUND_PAIRS = [
   ['nhà hàng', 'Thực đơn chay', 'hàng xóm', 'Chuyện cũ'],
   ['đầu tư', 'Vàng và bạc', 'tư vấn', 'Pháp lý nhà ở'],
   ['bản tin', 'Buổi sáng', 'tin đồn', 'Thất thiệt'],
+];
+
+// Harder vi-compound cases, none of them in the sample lexicon: [first syllable, second syllable, query form]. The target
+// note has the compound once; three distractor notes have both syllables more often, reversed or apart, so a search that
+// matches syllables without knowing the compound ranks a distractor first. Query forms: the compound, the compound
+// without marks, the compound after a verb phrase that only the target note has.
+const HARD_COMPOUNDS = [
+  ['sân', 'bay', 'accented'], ['bảo', 'tàng', 'folded'], ['bóng', 'đá', 'context'], ['bàn', 'chải', 'accented'], ['cầu', 'thủ', 'folded'],
+  ['hải', 'sản', 'context'], ['thời', 'tiết', 'accented'], ['quần', 'áo', 'folded'], ['bệnh', 'nhân', 'context'], ['trái', 'cây', 'accented'],
+  ['cửa', 'hàng', 'folded'], ['thư', 'viện', 'context'], ['giày', 'dép', 'accented'], ['ca', 'sĩ', 'folded'], ['mùa', 'đông', 'context'],
+];
+const HARD_FILLER = [
+  'Sáng nay trời mưa nhẹ nên mọi người đến muộn một chút.',
+  'Cuối tuần cả nhà về quê thăm ông bà.',
+  'Danh sách việc cần làm được cập nhật lại vào tối thứ hai.',
+  'Ghi lại vài ý chính để tuần sau bàn tiếp.',
+  'Chiều nay có cuộc họp ngắn ở phòng lớn.',
+  'Mọi thứ diễn ra khá suôn sẻ, không có gì đáng lo.',
 ];
 
 // [note title, query, note phrase that must exist]
@@ -456,6 +477,23 @@ export function build({ seed = 11, answersOut = options.answersOut.default } = {
     put(`notes/${title}.md`, chance(0.14) ? text.replaceAll('\n', '\r\n') : text);
   }
 
+  // 13. Harder compounds (after the filler: they use no rng call, so the notes above do not change).
+  let hardNote = 0;
+  const hard = (body) => { hardNote++; return note(`Nhật ký ${String(hardNote).padStart(2, '0')}`, body); };
+  HARD_COMPOUNDS.forEach(([a, b, form], i) => {
+    const f = (k) => HARD_FILLER[(i + k) % HARD_FILLER.length];
+    const phrase = `${a} ${b}`;
+    const target = hard(`${f(0)} Hôm qua tôi có nói chuyện về ${phrase} với một người bạn. ${f(1)}`);
+    hard(`${f(2)} Chuyện ${b} ${a} lại được nhắc tới. Ở đây ${a} thì nhiều, ${b} cũng vậy. ${f(3)} Lại ${b} rồi ${a}.`);
+    hard(`${f(4)} ${cap(a)} và ${b} là hai chuyện riêng. Người ta bàn về ${b} ${a} cả buổi. Còn ${a} thì sao?`);
+    hard(`${f(5)} Về ${b}: không rõ. Về ${a}: để sau. ${cap(b)} ${a}, ${b}.`);
+    expect(phrase, [target]);
+    foldChecks.push([phrase, target]);
+    const query = form === 'folded' ? strip(phrase) : form === 'context' ? `nói chuyện ${phrase}` : phrase;
+    add('vi-compound', query, [target], { hard: form },
+      `Harder: the note has "${phrase}" once; three other notes have "${a}" and "${b}" more often, reversed or apart.`);
+  });
+
   for (const [phrase, expected] of checks) expectNotes(phrase, expected);
   // The folded query must also identify one note only, or the query would be ambiguous even for a perfect fold.
   for (const [term, rel] of foldChecks) {
@@ -465,7 +503,7 @@ export function build({ seed = 11, answersOut = options.answersOut.default } = {
   }
   if (problems.length) throw new Error(`vi-search: golden set does not match the corpus:\n${problems.join('\n')}`);
 
-  // 13. Lexicon (format fixed by the project: three sections, one group per line, joined by " = ").
+  // 14. Lexicon (format fixed by the project: three sections, one group per line, joined by " = ").
   const compounds = [...new Set(COMPOUND_PAIRS.flatMap(([a, , b]) => [a, b]))];
   put('_ohs/lexicon.md', [
     '# Từ điển của vault', '',
@@ -476,9 +514,9 @@ export function build({ seed = 11, answersOut = options.answersOut.default } = {
     '## Chờ duyệt', '', 'GD = giáo dục', '',
   ].join('\n'));
 
-  // Sanity: 17 categories x 15 queries.
-  for (const c of categories) if (counts[c] !== 15) throw new Error(`vi-search: ${c} has ${counts[c]} queries, expected 15`);
-  if (golden.length !== categories.length * 15) throw new Error('vi-search: unexpected category in golden set');
+  // Sanity: 17 categories x 15 queries, plus 15 harder vi-compound queries.
+  for (const c of categories) if (counts[c] !== queriesPer(c)) throw new Error(`vi-search: ${c} has ${counts[c]} queries, expected ${queriesPer(c)}`);
+  if (golden.length !== categories.reduce((n, c) => n + queriesPer(c), 0)) throw new Error('vi-search: unexpected category in golden set');
 
   if (answersOut) files.outside = new Map([[answersOut, JSON.stringify(golden, null, 2) + '\n']]);
   return files;
