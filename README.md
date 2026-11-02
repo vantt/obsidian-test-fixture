@@ -7,8 +7,8 @@ Every word is generated. Same preset + same seed + same version gives byte-ident
 ## Install
 
 ```bash
-npm i -D github:vantt/obsidian-test-fixture#v0.7.0
-npx github:vantt/obsidian-test-fixture#v0.7.0 generate --preset personal-vault --seed 7 --out ./vault
+npm i -D github:vantt/obsidian-test-fixture#v0.8.0
+npx github:vantt/obsidian-test-fixture#v0.8.0 generate --preset personal-vault --seed 7 --out ./vault
 ```
 
 Not published on the npm registry. Pin a tag.
@@ -16,7 +16,7 @@ Not published on the npm registry. Pin a tag.
 ## CLI
 
 ```
-otf generate --preset hard-cases|personal-vault|kg-solo --out <dir> [--seed S] [--bulk N] [--standalone] [--git] [--lab-dir D] [--marker F] [--answers-out F] [--clients N] [--days N] [--answers F] [--ui]
+otf generate --preset hard-cases|personal-vault|kg-solo|vi-search --out <dir> [--seed S] [--bulk N] [--standalone] [--git] [--lab-dir D] [--marker F] [--answers-out F] [--clients N] [--days N] [--answers F] [--ui]
 otf truth <tasks|backlinks|unresolved|tags|yaml|crlf> <vault> [args]
 otf graph <vault> [--out graph.json]
 otf kg <vault> <stats|validate|cases|case <id>|query <json>> [--answers F]
@@ -44,7 +44,7 @@ const graph = buildGraph(dir);
 const res = await truth('backlinks', dir, ['Target Note.md']);
 ```
 
-Also importable: `obsidian-test-fixture/truth`, `/graph`, `/kg`, `/presets/hard-cases`, `/presets/personal-vault`, `/presets/kg-solo` (each preset exports `build(options) -> Map<path, text>`, `options`, `description`).
+Also importable: `obsidian-test-fixture/truth`, `/graph`, `/kg`, `/presets/hard-cases`, `/presets/personal-vault`, `/presets/kg-solo`, `/presets/vi-search` (each preset exports `build(options) -> Map<path, text>`, `options`, `description`).
 
 ## Presets
 
@@ -73,6 +73,34 @@ When an agent under test works on the vault, keep the key out of its reach: `--a
 
 ```bash
 otf generate --preset personal-vault --git --out ./vault-synth --answers-out ~/.local/state/my-eval/answer-key.json
+```
+
+### `vi-search` (329 files: 328 notes and a lexicon)
+
+A Vietnamese vault for evaluating search: accent-insensitive matching, tone and spelling variants, Telex, typos, synonyms, abbreviations, aliases, snippets. Options: `--seed` (11; changes filler text and nothing in the golden set), `--answers-out` (none).
+
+`--answers-out <file>` writes the golden set, a JSON array of 255 queries in the eval format of obsidian-hybrid-search (`{id, query, relevant_paths, partial_paths, category, notes}`; `vi-snippet` entries also carry `snippet_contains` and `matched_terms`). Paths are relative to the vault root. The golden set is never inside the vault. Each of the 17 categories has 15 queries and exactly one relevant note:
+
+| Category | What the query does |
+|---|---|
+| `vi-accented`, `vi-unaccented`, `vi-partial-accent` | the same 15 phrases with all marks, none, or marks on the first word only |
+| `vi-telex`, `vi-typo` | the same 15 phrases typed in Telex, or unaccented with two letter swaps |
+| `vi-snippet` | two words of those phrases, unaccented; the snippet must show the original marked text |
+| `vi-dd` | phrases with đ, typed with d |
+| `vi-iy` | `kĩ` for `kỹ` and back (the note and the query use different spellings) |
+| `vi-tone-placement` | `hoà` for `hòa` and back |
+| `vi-tone-precision` | a note about `bán hàng` next to a note about `bạn hàng` |
+| `vi-compound` | a note about `học sinh` next to a note about `sinh học` |
+| `vi-mixed-en` | Vietnamese notes with English words, queried in either language |
+| `vi-semantic` | a paraphrase with no content word in common with the note |
+| `vi-names` | fictional person names (each with a near-identical decoy) and place names, with or without marks |
+| `vi-synonym`, `vi-abbr` | the query uses another form from `_ohs/lexicon.md` than the note does |
+| `vi-alias` | the query matches only an alias in the front matter; the body is English |
+
+`_ohs/lexicon.md` is a sample lexicon with sections `## Đồng nghĩa`, `## Viết tắt`, `## Từ ghép` (one group per line, forms joined by ` = `; compounds one per line) and an unused `## Chờ duyệt`. An indexer that should not return it as a result needs `_ohs/**` in its ignore patterns. About 110 filler notes are mixed in, some with CRLF line endings. The generator checks while building that each query phrase occurs only in its relevant note (and that query-side spellings and abbreviations occur nowhere), so the golden set cannot drift from the corpus.
+
+```bash
+otf generate --preset vi-search --out ./vi-vault --answers-out ./vi-golden-set.json
 ```
 
 ### `kg-solo` (about 750 notes by default, 4,800 with `--clients 300 --days 730`)

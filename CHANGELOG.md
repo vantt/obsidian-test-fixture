@@ -2,6 +2,9 @@
 
 Any change to generated output is a breaking change and needs a new minor version here, because downstream answer keys depend on it.
 
+## 0.8.0
+- New preset `vi-search`: 328 Vietnamese notes plus `_ohs/lexicon.md`, and with `--answers-out` a golden set of 17 categories x 15 queries in the obsidian-hybrid-search eval format. Existing presets and their tree hashes are unchanged.
+
 ## 0.7.0
 - `kg-solo --ui`: ships the Labelled Links settings (`relationDefinitions`: one `a <-> inverse` pair per schema edge), so every typed edge shows in both directions in its relations pane, including `uses`/`client`/`party` that the Breadcrumbs fields do not cover. The Breadcrumbs matrix view now lists every group (`conditions`, `conditioned_by` were left out by the default list). The guide says where to look in each plugin (matrix panel on the right, `related` heading, relations pane). `--ui` output changes; trees without `--ui` are unchanged.
 - Checked in Obsidian 1.15.0 with Labelled Links 1.1.0: the relations pane of Metabase, Supabase and Dashboard doanh thu ABC matches the answer key.
