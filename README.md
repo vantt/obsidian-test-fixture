@@ -75,11 +75,11 @@ When an agent under test works on the vault, keep the key out of its reach: `--a
 otf generate --preset personal-vault --git --out ./vault-synth --answers-out ~/.local/state/my-eval/answer-key.json
 ```
 
-### `vi-search` (424 files: 423 notes and a lexicon)
+### `vi-search` (622 files: 621 notes and a lexicon)
 
 A Vietnamese vault for evaluating search: accent-insensitive matching, tone and spelling variants, Telex, typos, synonyms, abbreviations, aliases, snippets. Options: `--seed` (11; changes filler text and nothing in the golden set), `--answers-out` (none).
 
-`--answers-out <file>` writes the golden set, a JSON array of 270 queries in the eval format of obsidian-hybrid-search (`{id, query, relevant_paths, partial_paths, category, notes}`; `vi-snippet` entries also carry `snippet_contains` and `matched_terms`). Paths are relative to the vault root. The golden set is never inside the vault. Each of the 17 categories has 15 queries (`vi-compound` 30) and exactly one relevant note:
+`--answers-out <file>` writes the golden set, a JSON array of 315 queries in the eval format of obsidian-hybrid-search (`{id, query, relevant_paths, partial_paths, category, notes}`; `vi-snippet` entries also carry `snippet_contains` and `matched_terms`). Paths are relative to the vault root. The golden set is never inside the vault. Each of the 17 categories has 15 queries plus the harder ones below (`vi-compound` 35, `vi-accented` 35, `vi-iy`, `vi-abbr`, `vi-semantic` and `vi-mixed-en` 20), and exactly one relevant note:
 
 | Category | What the query does |
 |---|---|
@@ -98,7 +98,21 @@ A Vietnamese vault for evaluating search: accent-insensitive matching, tone and 
 | `vi-synonym`, `vi-abbr` | the query uses another form from `_ohs/lexicon.md` than the note does |
 | `vi-alias` | the query matches only an alias in the front matter; the body is English |
 
-`_ohs/lexicon.md` is a sample lexicon with sections `## Đồng nghĩa`, `## Viết tắt`, `## Từ ghép` (one group per line, forms joined by ` = `; compounds one per line) and an unused `## Chờ duyệt`. An indexer that should not return it as a result needs `_ohs/**` in its ignore patterns. About 110 filler notes are mixed in, some with CRLF line endings. The generator checks while building that each query phrase occurs only in its relevant note (and that query-side spellings and abbreviations occur nowhere), so the golden set cannot drift from the corpus.
+The 45 queries added in 0.12.0 mirror how a language pack fails on a large real vault, where the cases above are easy. Each carries `cause` (5 queries each):
+
+| `cause` | Category | What the case does |
+|---|---|---|
+| `iy-mixed` | `vi-iy` | notes on one topic use both spellings; the answer spells the query phrase the other way, two near notes use the query's spelling for part of it |
+| `common-compound` | `vi-compound` | the query starts with a compound found in more than 10% of the notes (80 background notes `Ghi việc tuần NN` carry six such compounds); the answer has the other words, not as one phrase |
+| `common-abbr` | `vi-abbr` | a lexicon abbreviation whose full phrase is in more than 5% of the notes; the answer spells it out or writes the abbreviation |
+| `function-pairs` | `vi-accented` | an accented query sharing a function-word pair with notes typed without diacritics (`Nhan nhanh NN`); the answer is accented |
+| `few-unaccented-pairs` | `vi-accented` | an accented query whose answer is typed without diacritics, with fewer than half of the query's word pairs found unaccented in the vault |
+| `idea` | `vi-semantic` | an idea-style question; near notes share its generic words, the answer none of its content words |
+| `title-phrase` | `vi-accented` | an overview note answers the query; a narrow note with the phrase in its title is in `partial_paths` |
+| `rare-identifier` | `vi-accented` | an identifier or model name (`ECONNRESET`, `SE3`) that only the answer has, among notes on the general topic |
+| `toneless-iy` | `vi-mixed-en` | unaccented queries with a toneless i/y syllable (`mi`, `ti`, `hi`, `vi`, `li`) in a vault with English notes and common words in the other spelling (`my`, `công ty`) |
+
+`_ohs/lexicon.md` is a sample lexicon with sections `## Đồng nghĩa`, `## Viết tắt`, `## Từ ghép` (one group per line, forms joined by ` = `; compounds one per line) and an unused `## Chờ duyệt`. An indexer that should not return it as a result needs `_ohs/**` in its ignore patterns. About 110 filler notes are mixed in, some with CRLF line endings. The generator checks while building that each query phrase occurs only in its relevant note (and that query-side spellings and abbreviations occur nowhere), and that each 0.12.0 case has its property (the compound or phrase is that common, the pairs are found unaccented or not), so the golden set cannot drift from the corpus.
 
 ```bash
 otf generate --preset vi-search --out ./vi-vault --answers-out ./vi-golden-set.json

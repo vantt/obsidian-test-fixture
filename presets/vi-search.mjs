@@ -1,4 +1,4 @@
-// Vietnamese search preset: about 420 synthetic notes plus a golden set (17 categories x 15 queries, vi-compound 30) in the
+// Vietnamese search preset: about 600 synthetic notes plus a golden set (17 categories, 320 queries; see queriesPer) in the
 // eval format of obsidian-hybrid-search ({id, query, relevant_paths, partial_paths, category, notes}) and a
 // sample lexicon at _ohs/lexicon.md. Every word is generated or hand-written for this preset; no real notes.
 // The golden set is not inside the vault: with `answersOut` it is written to that file, as for personal-vault.
@@ -6,7 +6,7 @@
 import { createRng } from '../lib/prng.mjs';
 
 export const name = 'vi-search';
-export const description = 'About 420 Vietnamese notes, a lexicon file and a golden set of 17 query categories x 15 queries (vi-compound 30) for search evals.';
+export const description = 'About 600 Vietnamese notes, a lexicon file and a golden set of 17 query categories (320 queries) for search evals.';
 export const options = {
   seed: { default: 11, description: 'PRNG seed (filler text and note order only; the golden set does not depend on it)' },
   answersOut: { default: '', outside: true, description: 'write the golden set (JSON) to this file outside the vault' },
@@ -17,8 +17,9 @@ export const categories = [
   'vi-compound', 'vi-mixed-en', 'vi-semantic', 'vi-names', 'vi-telex', 'vi-typo', 'vi-synonym', 'vi-abbr', 'vi-alias', 'vi-snippet',
 ];
 
-/** Queries per category: 15, and 30 for vi-compound (15 plus 15 harder ones). */
-export const queriesPer = (category) => (category === 'vi-compound' ? 30 : 15);
+/** Queries per category: 15, plus the harder ones (vi-compound 15 of 0.11.0 and 5 of 0.12.0, the rest of 0.12.0). */
+const EXTRA = { 'vi-compound': 20, 'vi-accented': 20, 'vi-iy': 5, 'vi-abbr': 5, 'vi-semantic': 5, 'vi-mixed-en': 5 };
+export const queriesPer = (category) => 15 + (EXTRA[category] ?? 0);
 
 // ---- query transforms ------------------------------------------------------------------------------------------
 
@@ -315,6 +316,251 @@ const MENTION = [
   (p) => `Một vài dòng xoay quanh ${p} để lần sau xem lại.`,
 ];
 
+// ---- 0.12.0 cases ---------------------------------------------------------------------------------------------
+// Cases that mirror how a language pack fails on a large real vault, where the earlier categories are already easy. Each
+// entry carries a `cause`. They are generated after all other notes without rng calls, so every earlier note and golden
+// entry is unchanged; the extra notes do change IDF and vector neighbours for the earlier queries.
+
+// Background notes that make a few compounds common (in more than 10% of the notes): every note has one sentence of each
+// group. The common compounds are thời gian, công việc, thông tin, sản phẩm, kế hoạch and công ty.
+const COMMON_T = [
+  'Tuần này mình phải sắp lại thời gian vì việc nhà nhiều hơn.',
+  'Thời gian gần đây mình ngủ muộn hơn thường lệ.',
+  'Mình chưa có thời gian đọc hết tập giấy tờ, để tối nay xem tiếp.',
+  'Cả nhóm thống nhất dành thêm thời gian cho khâu kiểm tra.',
+  'Thời gian đi đường buổi sáng dài ra vì đoạn đường đang sửa.',
+];
+const COMMON_W = [
+  'Công việc dạo này ổn, chỉ hơi nhiều giấy tờ.',
+  'Công việc dồn lại từ hôm thứ hai nên chiều nay ở lại muộn.',
+  'Mình chia công việc thành từng phần nhỏ cho dễ theo dõi.',
+  'Có hôm công việc trôi chảy, có hôm chẳng xong được gì.',
+  'Mọi người trong nhóm chia nhau công việc rất gọn.',
+];
+const COMMON_I = [
+  'Thông tin về sản phẩm mới được gửi vào nhóm chung từ sáng.',
+  'Mình ghi lại vài thông tin về sản phẩm để khi cần là tìm được ngay.',
+  'Trang giới thiệu sản phẩm còn thiếu thông tin về cách đổi trả.',
+  'Ai cũng hỏi thông tin về sản phẩm sắp ra mắt.',
+];
+const COMMON_P = [
+  'Kế hoạch của công ty thay đổi một chút sau buổi họp chiều qua.',
+  'Công ty đang lên kế hoạch cho đợt nghỉ lễ sắp tới.',
+  'Kế hoạch năm sau của công ty vẫn đang chờ duyệt.',
+  'Bên công ty bạn mình cũng có kế hoạch tương tự.',
+];
+const COMMON_NOTES = 80;
+
+// iy-mixed: notes on the same topic use both spellings. [query, answer title, answer body (other spelling),
+// near notes [title, body] in the query's spelling that share only part of the query]
+const IY_MIXED = [
+  ['kỹ năng đàm phán giá thuê nhà', 'Thuê căn hộ đầu tiên',
+    'Mình ghi lại mấy kĩ năng đàm phán giá thuê nhà học được sau lần chuyển chỗ ở. Hỏi giá các căn quanh đó trước, xin bớt nếu thuê dài hạn và chụp ảnh hiện trạng trước khi dọn vào.',
+    [['Đàm phán với chủ xưởng', 'Kỹ năng thương lượng với chủ xưởng gỗ khác hẳn khi mua lẻ. Kỹ năng quan trọng nhất là biết lúc nào nên dừng.'],
+      ['Tìm thợ sơn nhà', 'Thợ sơn có kỹ năng tốt thường báo giá cao hơn một chút. Mình hỏi ba người rồi mới chọn, giá nhà bên cạnh trả cũng tham khảo được.']]],
+  ['lí do bỏ lớp học thêm', 'Con không muốn đi học thêm',
+    'Hôm nay con nói thật lý do bỏ lớp học thêm buổi tối: lớp đông, cô giảng nhanh và về nhà quá muộn. Mình đồng ý cho con tự ôn ở nhà một tháng xem sao.',
+    [['Lớp vẽ cuối tuần', 'Lí do mình chọn lớp vẽ này là gần nhà và học buổi sáng. Lớp nhỏ, ai cũng được thầy sửa bài.'],
+      ['Bỏ thức khuya', 'Lí do lớn nhất khiến mình bỏ được tật thức khuya là có thêm giờ đi bộ buổi sáng.']]],
+  ['kĩ thuật ghép cành bưởi', 'Vườn nhà ông ngoại',
+    'Ông ngoại dạy mình kỹ thuật ghép cành bưởi: chọn cành bánh tẻ, cắt vát, buộc chặt bằng dây ni lông và che nắng vài tuần.',
+    [['Chiết cành cam', 'Kĩ thuật chiết cành cam đơn giản hơn ghép, chỉ cần bó bầu đất và chờ ra rễ.'],
+      ['Bón phân cho cây ăn quả', 'Mấy gốc bưởi sau nhà cần bón phân đúng kĩ thuật, chia làm nhiều lần trong năm.']]],
+  ['quản lí giấy tờ nhà đất', 'Hộp hồ sơ gia đình',
+    'Bố dặn mình cách quản lý giấy tờ nhà đất: bản gốc cất hộp chống ẩm, bản sao để riêng, mỗi lần đi làm thủ tục thì ghi lại ngày nộp.',
+    [['Sắp xếp tủ tài liệu', 'Quản lí tài liệu ở văn phòng theo màu bìa giúp tìm nhanh hơn.'],
+      ['Mấy mảnh đất ở quê', 'Chú mình quản lí mấy mảnh đất ở quê, giấy tờ để chung một túi nên lần nào tìm cũng mất cả buổi.']]],
+  ['kỳ nghỉ hè ở quê ngoại', 'Tuổi thơ ở làng',
+    'Kì nghỉ hè ở quê ngoại năm ấy mình học bơi ngoài sông, theo các anh đi thả diều và tối nào cũng nghe bà kể chuyện.',
+    [['Đi biển với lớp cũ', 'Kỳ nghỉ hè này cả lớp cũ hẹn nhau ra biển ba ngày.'],
+      ['Quê nội mùa gặt', 'Kỳ nghỉ năm ngoái mình về quê nội đúng mùa gặt, đồng lúa vàng cả một vùng.']]],
+];
+
+// common-compound: a common compound plus specific words; the answer has the words but not as the query phrase, two
+// near notes share the compound or one more query word. [compound, rest of the query, answer title, body, near notes]
+const COMMON_COMPOUND = [
+  ['thời gian', 'ủ bột bánh mì', 'Mẻ bánh đầu tiên',
+    'Mẻ bánh mì sáng nay nở đều vì bột được ủ qua đêm trong tủ mát. Lần sau mình sẽ ghi lại thời gian ủ cho từng loại bột.',
+    [['Tiệm bánh đầu ngõ', 'Thời gian chờ bánh mì ở tiệm đầu ngõ dài hơn mọi khi, ai cũng phải đứng đợi.'],
+      ['Bột mì trong bếp', 'Túi bột mì mua về để trong hũ kín cho khỏi ẩm. Dạo này mình không có thời gian vào bếp.']]],
+  ['công việc', 'sửa mái tôn bị dột', 'Nhà sau mưa lớn',
+    'Mái tôn phía sau nhà bị dột ở hai chỗ sau trận mưa lớn. Thợ hẹn cuối tuần sang thay tấm mới, công việc chắc mất một buổi sáng.',
+    [['Sửa xe cuối tuần', 'Công việc cuối tuần là sửa lại cái yên xe bị rách.'],
+      ['Mái hiên quán nước', 'Mái hiên của quán nước đầu ngõ bị dột, nước nhỏ giọt xuống bàn.']]],
+  ['kế hoạch', 'trồng hoa hồng leo ban công', 'Ban công hướng đông',
+    'Ban công hướng đông đủ nắng cho mấy gốc hồng leo mới mua. Kế hoạch là trồng thêm hai chậu và làm giàn bằng tre để hoa bò lên.',
+    [['Dọn ban công', 'Kế hoạch cuối tuần là dọn lại ban công, bỏ bớt chậu vỡ.'],
+      ['Bình hoa trên bàn', 'Mấy bông hoa hồng cắm bình từ hôm qua đã bắt đầu héo.']]],
+  ['thông tin', 'lịch tiêm phòng cho chó con', 'Bé cún mới về',
+    'Chú chó con nhà mình được ba tháng tuổi, người khám ở phòng thú y dặn lịch tiêm phòng mũi tiếp theo. Mình ghi lại thông tin vào sổ để khỏi quên.',
+    [['Chó lạc ở khu phố', 'Thông tin về chú chó lạc được dán ở bảng tin của khu phố.'],
+      ['Lịch tiêm cho con', 'Lịch tiêm phòng của con gái tháng này có thêm một mũi nhắc lại.']]],
+  ['sản phẩm', 'nến thơm từ sáp đậu nành', 'Làm nến ở nhà',
+    'Mẻ nến thơm đầu tiên mình làm từ sáp đậu nành, thêm vài giọt tinh dầu sả. Sản phẩm cháy đều, không khói, bạn bè xin mỗi người một hũ.',
+    [['Sữa hạt buổi sáng', 'Sản phẩm sữa đậu nành đóng chai ở siêu thị ngọt hơn mình nghĩ.'],
+      ['Sinh nhật bé út', 'Mấy cây nến cắm trên bánh kem được bé út thổi tắt trong một hơi.']]],
+];
+
+// common-abbr: abbreviations whose full phrase is common (more than 5% of the notes). The answer writes the full
+// phrase, or the abbreviation itself as people do. [abbreviation, full phrase, query, answer title, body, near notes]
+const COMMON_ABBR = [
+  ['CV', 'công việc', 'CV bàn giao kho lạnh', 'Xưởng mới',
+    'Tuần này mình nhận bàn giao kho lạnh ở xưởng mới. Công việc gồm kiểm nhiệt độ từng ngăn và dán nhãn hàng.',
+    [['Bàn giao ca đêm', 'Công việc bàn giao ca đêm phải ghi đủ số liệu vào sổ trước khi về.'],
+      ['Kho đồ cũ', 'Kho chứa đồ cũ sau nhà lạnh và ẩm, công việc dọn dẹp để sang tháng.']]],
+  ['TT', 'thông tin', 'TT tuyển sinh lớp vẽ thiếu nhi', 'Lớp vẽ cho bé',
+    'Mình gom TT tuyển sinh lớp vẽ thiếu nhi của câu lạc bộ phường: học sáng thứ bảy, mỗi khoá tám buổi, có sẵn màu.',
+    [['Tuyển sinh đầu cấp', 'Thông tin tuyển sinh đầu cấp năm nay được dán ở cổng trường.']]],
+  ['SP', 'sản phẩm', 'SP gốm men lam', 'Lò gốm quê',
+    'Mấy chiếc bình gốm men lam ra lò tuần trước đã hết sạch. Khách quen hỏi bao giờ có lại sản phẩm này.',
+    [['Chợ gốm cuối tuần', 'Sản phẩm gốm ở chợ phiên cuối tuần phần lớn là men nâu.']]],
+  ['TG', 'thời gian', 'TG phơi mực một nắng', 'Mực câu ở làng biển',
+    'Mực câu về phải phơi đúng một nắng thì thịt mới ngọt; TG phơi tuỳ trời, nắng gắt chỉ nửa ngày.',
+    [['Phơi chăn đầu mùa', 'Thời gian phơi chăn mùa này ngắn vì nắng yếu.'],
+      ['Cá khô một nắng', 'Một nắng là cách gọi mẻ cá chỉ phơi trong một ngày.']]],
+  ['CTy', 'công ty', 'CTy lắp đặt điện mặt trời', 'Mái xưởng bên cạnh',
+    'Công ty bên cạnh vừa lắp đặt hệ thống điện mặt trời trên mái xưởng, nghe nói tiền điện tháng sau giảm hẳn.',
+    [['Đèn sân vườn', 'Mấy cây đèn năng lượng mặt trời ngoài sân sáng đến gần nửa đêm.'],
+      ['Cắt điện chủ nhật', 'Công ty điện lực báo cắt điện sáng chủ nhật để sửa đường dây.']]],
+];
+
+// Notes typed without diacritics, full of function-word pairs (for function-pairs).
+const UNACCENTED_CHAT = [
+  'hom nay minh ve muon, cung khong biet la co nen di tap hay khong. nhung dieu can lam thi van chua xong, vi vay de mai tinh tiep.',
+  'minh thay la khi nao ranh thi nen goi cho ba me. nhung viec nho nhu the ma de lau thi cung thanh to.',
+  'co the la tuan sau moi xong, vi con cho them giay to. neu duoc thi minh se bao lai cho moi nguoi.',
+  'khong biet nen bat dau tu dau, nhung ma cu lam tung chut mot thi cung xong. dieu quan trong la dung bo giua chung.',
+  'luc truoc minh hay de do lung tung, gio thi da quen xep lai sau khi dung. nhu vay de tim hon.',
+  'neu ma troi mua thi minh o nha, con khong thi ra cong vien di bo mot vong cho khoe.',
+];
+// function-pairs: an accented query with a function-word pair that the unaccented notes above also have; the answer is
+// an accented note. [query, answer title, body, accented near note]
+const FUNCTION_PAIRS = [
+  ['những điều cần biết khi nuôi ong lấy mật', 'Thùng ong sau vườn',
+    'Nuôi ong lấy mật cần đặt thùng nơi râm mát, gần nguồn hoa và tránh phun thuốc quanh đó. Mỗi tuần mở thùng một lần để xem ong chúa còn đẻ đều không.',
+    ['Mật ong rừng', 'Hũ mật ong rừng bạn gửi biếu đặc và thơm mùi hoa.']],
+  ['khi nào nên thay lọc gió điều hoà', 'Bảo dưỡng máy lạnh',
+    'Máy lạnh trong phòng ngủ chạy cả mùa hè nên tấm lọc bụi bám dày. Cứ hai tháng mình tháo ra rửa một lần, máy mát hơn hẳn.',
+    ['Gió mùa về', 'Gió mùa về, cả nhà lôi chăn dày ra phơi.']],
+  ['có thể trồng rau thơm trong chậu nhỏ không', 'Góc rau thơm',
+    'Mấy chậu nhựa nhỏ trên bậu cửa sổ trồng húng quế, tía tô và rau mùi vẫn lên tốt, miễn đủ nắng buổi sáng và tưới vừa phải.',
+    ['Rau thơm ăn kèm', 'Đĩa rau thơm ăn kèm bún chả có kinh giới và tía tô.']],
+  ['nên bắt đầu từ đâu khi học vẽ màu nước', 'Vẽ màu nước',
+    'Mình mua bộ màu nước loại rẻ, giấy dày và hai cây cọ tròn. Tuần đầu chỉ tập loang màu và vẽ trái táo, đừng vội vẽ phong cảnh.',
+    ['Màu nước trên tường', 'Bức tường sau nhà ngấm màu nước mưa thành vệt loang.']],
+  ['như vậy có nên mua máy hút bụi không dây', 'Dọn nhà cuối tuần',
+    'Cây hút bụi cầm tay chạy pin giúp mình dọn gầm giường và kẽ sofa nhanh gấp đôi. Pin dùng được khoảng nửa tiếng.',
+    ['Bụi mịn mùa khô', 'Mùa khô bụi mịn nhiều, ra đường nhớ đeo khẩu trang.']],
+];
+
+// few-unaccented-pairs: an accented query whose answer is a note typed without diacritics, where fewer than half of the
+// query's adjacent word pairs occur unaccented in the vault. [query, answer title, body, accented near note]
+const FEW_UNACCENTED_PAIRS = [
+  ['cách làm mứt dừa non', 'Mut tet nam nay',
+    'tet nay minh tu nau mut. chon dua non mua o cho, bao soi roi ngam nuoc voi, sen voi duong va dao lua nho den khi kho.',
+    ['Mứt gừng', 'Mứt gừng ngày tết cay nồng, mình chỉ ăn một miếng là đủ.']],
+  ['kinh nghiệm thuê xe tự lái đi Mộc Châu', 'Len vung cao',
+    'thang truoc ca nhom len moc chau, tu lai chiec xe so thue o ha noi. kinh nghiem rut ra: dat xe truoc mot tuan, chup anh xe luc nhan va do day xang truoc khi tra.',
+    ['Thuê xe đi đám cưới', 'Nhà mình thuê xe bảy chỗ đi đám cưới ở quê, tài xế đón tận cửa.']],
+  ['lịch tập chạy bộ cho người mới bắt đầu', 'Chay bo 5km',
+    'tuan dau chi chay xen ke di bo, moi buoi hai muoi phut. nguoi moi thi dung co chay nhanh, cu giu nhip tho deu la duoc. lich cua minh: thu hai, thu tu, thu sau.',
+    ['Đôi giày chạy bộ mới', 'Đôi giày chạy bộ mới êm chân, mình đi thử quanh công viên.']],
+  ['cách khử mùi hôi tủ lạnh', 'Tu lanh nha bep',
+    'tu lanh de lau bi hoi, minh lau sach ben trong bang nuoc chanh roi de mot chen than hoat o ngan duoi.',
+    ['Mùi sơn mới', 'Phòng mới sơn còn mùi hôi, mình mở toang cửa sổ cả ngày.']],
+  ['tự sửa bóng đèn huỳnh quang bị nhấp nháy', 'Den phong khach',
+    'bong den o phong khach cu nhap nhay hoai, thay con chuot (tac te) la het. lan sau nho mua san mot con de du phong.',
+    ['Đèn ngủ cho bé', 'Đèn ngủ ánh vàng dịu, bé ngủ ngon hơn hẳn.']],
+];
+
+// idea: idea-style queries; the answer shares no content word with the query, two notes share its generic words.
+// [query, answer title, body, near notes]
+const IDEA = [
+  ['làm sao để bớt run khi đứng trước nhiều người', 'Sợ sân khấu',
+    'Tim đập nhanh, tay lạnh ngắt mỗi lần lên phát biểu ở hội nghị. Mình tập hít thở bằng bụng, nhìn vào vài gương mặt quen dưới khán phòng và chuẩn bị thật chu đáo phần mở đầu.',
+    [['Xếp hàng mua vé', 'Nhiều người đứng xếp hàng từ sáng sớm trước cửa rạp, không biết làm sao để mua được vé.'],
+      ['Chụp ảnh tập thể', 'Khi đứng trước ống kính, nhiều người hay nhắm mắt nên phải chụp lại mấy lần.']]],
+  ['cách giữ cho đầu óc tỉnh táo suốt buổi chiều', 'Uể oải sau bữa trưa',
+    'Sau bữa trưa mình hay ngáp liên tục. Chợp mắt mười lăm phút, uống ngụm trà xanh và đứng dậy vươn vai giúp tinh thần minh mẫn trở lại.',
+    [['Giữ ấm cho bé', 'Cách giữ ấm cho bé khi trời trở lạnh là mặc nhiều lớp mỏng.'],
+      ['Buổi chiều ở hiệu sách', 'Suốt buổi chiều mình ngồi đọc ở hiệu sách cũ, quên cả giờ về.']]],
+  ['muốn con nhỏ chịu ăn rau thì nên làm gì', 'Bé kén ăn',
+    'Bé nhà mình gạt hết phần xanh ra mép đĩa. Mình thử cắt củ quả thành hình ngôi sao, cho bé tự nhặt ở chợ và nấu cùng, thế là bé gắp hết cả bát.',
+    [['Rau muống luộc', 'Rau muống luộc chấm nước tương là món ăn quen của cả nhà.'],
+      ['Con mèo nhỏ nhà bên', 'Con mèo nhỏ nhà bên không chịu ăn hạt, chỉ thích cá.']]],
+  ['làm thế nào để không quên những việc nhỏ trong ngày', 'Gạch đầu dòng mỗi sáng',
+    'Mỗi sáng mình liệt kê vài gạch đầu dòng, tối đánh dấu cái đã xong và chuyển cái dở sang hôm sau. Nhờ vậy ít bỏ sót lời hẹn.',
+    [['Việc nhỏ trong nhà', 'Những việc nhỏ trong nhà như thay bóng đèn, lau quạt thường bị để đến cuối tháng.'],
+      ['Quên chìa khoá', 'Sáng nay vội quá nên mình lại quên chìa khoá ở nhà.']]],
+  ['làm sao để căn phòng nhỏ trông rộng hơn', 'Góc ở mười hai mét vuông',
+    'Mình sơn tường màu sáng, treo một tấm gương lớn đối diện cửa sổ và chọn giường có ngăn kéo bên dưới. Đồ đạc gọn thì mắt thấy thoáng hẳn.',
+    [['Căn phòng cuối hành lang', 'Căn phòng nhỏ cuối hành lang dùng làm kho chứa đồ.'],
+      ['Phòng khách nhà bác', 'Phòng khách nhà bác rộng hơn nhà mình nhiều, trông lúc nào cũng sáng.']]],
+];
+
+// title-phrase: the overview note answers the query (phrase once in its body); a narrow note has the phrase in its title
+// and is only partly relevant. [query, overview title, body, narrow title, body]
+const TITLE_PHRASE = [
+  ['chuẩn bị đồ đi cắm trại', 'Danh sách mang theo khi đi dã ngoại',
+    'Lều hai lớp, túi ngủ, đèn pin, bếp ga mini, nồi nhỏ, nước uống và túi rác. Mỗi lần chuẩn bị đồ đi cắm trại mình dò lại danh sách này, thêm áo mưa nếu dự báo có mưa.',
+    'Chuẩn bị đồ đi cắm trại cho mèo', 'Mang theo dây dắt, hộp cát gấp gọn và ít hạt quen là bé mèo yên tâm.'],
+  ['tập bơi cho người lớn', 'Bơi lội ở tuổi ba mươi',
+    'Mình bắt đầu tập bơi cho người lớn ở hồ bơi quận. Tuần đầu làm quen với nước và tập thở, tuần thứ hai tập nổi, sang tuần thứ ba mới đạp chân và quạt tay. Đến cuối tháng mình bơi được hết chiều ngang hồ.',
+    'Tập bơi cho người lớn: chọn kính bơi', 'Kính bơi nên ôm mặt, có lớp chống mờ và dây dễ chỉnh.'],
+  ['làm sữa chua tại nhà', 'Hũ men cái và những mẻ đầu tiên',
+    'Muốn làm sữa chua tại nhà chỉ cần sữa tươi, sữa đặc và một hũ men cái. Đun sữa ấm vừa tay, khuấy đều với men, chia hũ rồi ủ ấm tám tiếng. Mẻ đầu hơi chua, mẻ sau giảm men là vừa.',
+    'Làm sữa chua tại nhà bị chảy nước', 'Sữa chua chảy nước thường do ủ quá nóng hoặc men đã cũ.'],
+  ['sửa vòi nước bị rỉ', 'Tự xoay xở với đồ nước trong bếp',
+    'Khoá van tổng trước, tháo tay vặn, thay ron cao su và quấn băng tan quanh ren. Lần đầu sửa vòi nước bị rỉ mình mất cả tiếng, giờ chỉ mười phút. Bồn rửa nghẹt thì dùng que thông và nước nóng.',
+    'Sửa vòi nước bị rỉ: mua ron ở đâu', 'Tiệm điện nước đầu chợ bán đủ cỡ ron, mang ron cũ ra so cho chắc.'],
+  ['lên thực đơn ăn dặm cho bé', 'Bé tập ăn từ tháng thứ sáu',
+    'Tháng đầu cho bé ăn bột loãng một bữa, rồi tăng dần độ đặc. Mỗi tuần mình lên thực đơn ăn dặm cho bé, thử một loại rau củ mới trong ba ngày để xem bé có dị ứng không.',
+    'Lên thực đơn ăn dặm cho bé: cháo bí đỏ', 'Bí đỏ hấp chín, nghiền mịn rồi trộn vào cháo trắng.'],
+];
+
+// rare-identifier: an accented query with an identifier or product name that only the answer has, once; other notes are
+// about the general topic. [query, identifier, answer title, body, near notes]
+const RARE_IDENTIFIER = [
+  ['lỗi ECONNRESET khi gọi máy chủ', 'ECONNRESET', 'Sự cố đêm thứ sáu',
+    'Đêm qua hàng đợi báo lỗi ECONNRESET liên tục khi gọi sang máy chủ bên đối tác; tăng thời gian chờ và thử lại là ổn.',
+    [['Máy chủ chậm giờ cao điểm', 'Máy chủ nội bộ chạy chậm vào giờ cao điểm, cần thêm bộ nhớ.'],
+      ['Mạng ở nhà hay rớt', 'Mạng ở nhà hay rớt, khởi động lại bộ phát là kết nối lại được.']]],
+  ['cài Zotero để viết luận văn', 'Zotero', 'Trích dẫn nguồn tham khảo',
+    'Mình dùng Zotero để gom nguồn tham khảo, xuất trích dẫn thẳng vào bản thảo.',
+    [['Viết luận văn', 'Luận văn cần mục lục rõ ràng và danh mục tài liệu tham khảo đúng mẫu.'],
+      ['Cài lại máy', 'Cài lại máy xong mình mất cả buổi để chép lại các tệp cũ.']]],
+  ['bảo hành máy giặt Toshiba', 'Toshiba', 'Máy giặt kêu to',
+    'Máy giặt Toshiba cửa trên kêu to khi vắt; gọi tổng đài, thợ đến thay giảm xóc miễn phí vì còn hạn.',
+    [['Máy giặt mới', 'Máy giặt cửa ngang tiết kiệm nước hơn loại cửa trên.'],
+      ['Phiếu bảo hành', 'Phiếu bảo hành của nồi chiên ghi rõ thời hạn mười hai tháng.']]],
+  ['đặt vé tàu SE3 đi Huế', 'SE3', 'Về miền Trung dịp lễ',
+    'Mình đặt được hai vé tàu SE3, giường nằm khoang bốn, khởi hành tối thứ năm.',
+    [['Tàu đêm vào miền Trung', 'Đi tàu đêm vào miền Trung, sáng ra nhìn thấy biển ngay bên cửa sổ.'],
+      ['Đi Huế ăn bún bò', 'Chuyến đi Huế lần trước mình ăn bún bò mỗi sáng.']]],
+  ['mã lỗi E21 bếp từ', 'E21', 'Bếp nhà mình',
+    'Bếp từ đang nấu tự tắt và hiện mã E21; lau sạch quạt tản nhiệt phía dưới là hết.',
+    [['Chọn nồi cho bếp từ', 'Nồi đáy phẳng nhiễm từ mới dùng được với bếp từ.'],
+      ['Mã giảm giá', 'Mã giảm giá của cửa tiệm chỉ dùng được đến hết tháng.']]],
+];
+
+// toneless-iy: unaccented queries with a toneless i/y syllable (mi, ti, vi, hi, li) in a vault that also has English
+// notes using the other spelling as a word (my, hi) and many Vietnamese notes with the other spelling (công ty, ly).
+// [query, answer title, body]
+const TONELESS_IY = [
+  ['uon mi cong tu nhien', 'Trang điểm nhẹ', 'Mình dùng kẹp uốn mi rồi chải một lớp mực mỏng cho mi cong tự nhiên.'],
+  ['sua ti vi bi mat tieng', 'Góc giải trí', 'Ti vi trong phòng khách tự nhiên mất tiếng, thợ đến thay bo mạch âm thanh là xong.'],
+  ['hi vong con do dai hoc', 'Mùa thi của con',
+    'Mùa thi năm nay con ôn rất chăm, cả nhà chỉ mong con vào được trường đại học gần nhà. Bố bảo cứ hi vọng nhưng đừng tạo áp lực.'],
+  ['vi khuan tren thot go', 'Vệ sinh bếp', 'Thớt gỗ dùng lâu dễ bám vi khuẩn, mình rửa bằng nước nóng và phơi nắng mỗi tuần.'],
+  ['li nuoc ep cam buoi sang', 'Bữa sáng nhanh', 'Mỗi sáng mình uống một li nước ép cam với lát bánh mì nướng.'],
+];
+const TONELESS_IY_NEAR = [
+  ['My weekly review', 'My plan for the week: my errands, my reading, my workouts and my calls.'],
+  ['My camera settings', 'My lens, my tripod and my presets for night shots.'],
+  ['Hi team update', 'Hi team, hi again: the vendor call moved to Thursday.'],
+  ['Ly trà chiều', 'Chiều nào mình cũng pha một ly trà gừng.'],
+];
+
 // ---- build -----------------------------------------------------------------------------------------------------
 
 export function build({ seed = 11, answersOut = options.answersOut.default } = {}) {
@@ -494,6 +740,103 @@ export function build({ seed = 11, answersOut = options.answersOut.default } = {
       `Harder: the note has "${phrase}" once; three other notes have "${a}" and "${b}" more often, reversed or apart.`);
   });
 
+  // 14. Cases of 0.12.0 (after all other notes, no rng calls). `cause` names the failure each one mirrors.
+  const words = (text) => strip(nfc(text).toLowerCase()).split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+  const pairsOf = (text) => { const w = words(text); return w.slice(1).map((x, i) => `${w[i]} ${x}`); };
+  const isUnaccented = (n) => strip(n.text) === n.text;
+  const later = [];   // checks that need every note
+  const titled = (title, body) => note(title, body);
+  for (let i = 0; i < COMMON_NOTES; i++)
+    note(`Ghi việc tuần ${String(i + 1).padStart(2, '0')}`,
+      `${COMMON_T[i % COMMON_T.length]} ${COMMON_W[(i + 1) % COMMON_W.length]}\n\n${COMMON_I[i % COMMON_I.length]} ${COMMON_P[(i + 2) % COMMON_P.length]}`);
+  const withNear = (title, body, near) => { const rel = titled(title, body); for (const [t, b] of near) titled(t, b); return rel; };
+  // Share of the notes that contain `phrase` as whole words.
+  const docShare = (phrase) => {
+    const re = new RegExp(`(^|[^\\p{L}])${nfc(phrase).toLowerCase()}([^\\p{L}]|$)`, 'u');
+    return { docs: notes.filter((n) => re.test(n.text)).length, share: notes.filter((n) => re.test(n.text)).length / notes.length };
+  };
+  const common = (phrase, share) => later.push(() => {
+    const d = docShare(phrase);
+    if (!(d.docs >= 20 && d.share > share)) problems.push(`"${phrase}" is in ${d.docs} notes (${(100 * d.share).toFixed(1)}%), expected more than ${100 * share}%`);
+  });
+
+  IY_MIXED.forEach(([query, title, body, near]) => {
+    const rel = withNear(title, body, near);
+    const other = toI(query) !== query ? toI(query) : toY(query);
+    expect(query, []); expect(other, [rel]);
+    add('vi-iy', query, [rel], { cause: 'iy-mixed' },
+      `The answer spells "${other}"; near notes on the topic use the query's spelling for part of the phrase.`);
+  });
+  COMMON_COMPOUND.forEach(([compound, rest, title, body, near]) => {
+    const rel = withNear(title, body, near);
+    const query = `${compound} ${rest}`;
+    expect(query, []); common(compound, 0.1);
+    add('vi-compound', query, [rel], { cause: 'common-compound' },
+      `"${compound}" is in more than 10% of the notes; the answer has the other words, not as one phrase.`);
+  });
+  COMMON_ABBR.forEach(([abbr, full, query, title, body, near]) => {
+    const rel = withNear(title, body, near);
+    common(full, 0.05);
+    later.push(() => {
+      const re = new RegExp(`(^|[^\\p{L}])${abbr}([^\\p{L}]|$)`, 'u');
+      const hit = notes.filter((n) => re.test(n.raw)).map((n) => n.path);
+      if (hit.some((p) => p !== rel)) problems.push(`abbreviation "${abbr}" is written in ${JSON.stringify(hit.slice(0, 3))}`);
+    });
+    add('vi-abbr', query, [rel], { cause: 'common-abbr' },
+      `Lexicon: ${abbr} = ${full}, a phrase in more than 5% of the notes; the answer ${nfc(body).includes(abbr) ? 'writes the abbreviation' : 'spells it out'}.`);
+  });
+  UNACCENTED_CHAT.forEach((body, i) => note(`Nhan nhanh ${String(i + 1).padStart(2, '0')}`, body));
+  FUNCTION_PAIRS.forEach(([query, title, body, near]) => {
+    const rel = withNear(title, body, [near]);
+    expect(query, []);
+    later.push(() => {
+      const found = new Set(notes.filter(isUnaccented).flatMap((n) => pairsOf(n.raw)));
+      if (!pairsOf(query).some((p) => found.has(p))) problems.push(`no pair of "${query}" is in an unaccented note`);
+    });
+    add('vi-accented', query, [rel], { cause: 'function-pairs' },
+      'Unaccented notes share a function-word pair of the query; the answer is an accented note.');
+  });
+  FEW_UNACCENTED_PAIRS.forEach(([query, title, body, near]) => {
+    const rel = withNear(title, body, [near]);
+    later.push(() => {
+      const n = notes.find((x) => x.path === rel);
+      if (!isUnaccented(n)) problems.push(`${rel} is not typed without diacritics`);
+      const found = new Set(notes.filter(isUnaccented).flatMap((x) => pairsOf(x.raw)));
+      const pairs = pairsOf(query);
+      const share = pairs.filter((p) => found.has(p)).length / pairs.length;
+      if (!(share > 0 && share < 0.5)) problems.push(`"${query}": ${share} of its pairs are in unaccented notes, expected more than 0 and less than half`);
+    });
+    add('vi-accented', query, [rel], { cause: 'few-unaccented-pairs' },
+      'The answer is typed without diacritics; fewer than half of the query word pairs occur unaccented in the vault.');
+  });
+  IDEA.forEach(([query, title, body, near]) => {
+    const rel = withNear(title, body, near);
+    add('vi-semantic', query, [rel], { cause: 'idea' },
+      'Idea-style query; near notes share only its generic words, the answer none of its content words.');
+  });
+  TITLE_PHRASE.forEach(([query, title, body, narrowTitle, narrowBody]) => {
+    const rel = titled(title, body);
+    const narrow = titled(narrowTitle, narrowBody);
+    expect(query, [rel, narrow]);
+    if (nfc(title).toLowerCase().includes(query) || !nfc(narrowTitle).toLowerCase().includes(query)) throw new Error(`vi-search: title-phrase "${query}"`);
+    add('vi-accented', query, [rel], { cause: 'title-phrase' },
+      'The overview note answers the query; a narrow note with the phrase in its title is only partly relevant.');
+    golden.at(-1).partial_paths = [narrow];
+  });
+  RARE_IDENTIFIER.forEach(([query, id, title, body, near]) => {
+    const rel = withNear(title, body, near);
+    expect(id, [rel]);
+    add('vi-accented', query, [rel], { cause: 'rare-identifier' },
+      `Only the answer has "${id}", once; near notes are about the general topic.`);
+  });
+  for (const [title, body] of TONELESS_IY_NEAR) titled(title, body);
+  TONELESS_IY.forEach(([query, title, body]) => {
+    const rel = titled(title, body);
+    add('vi-mixed-en', query, [rel], { cause: 'toneless-iy' },
+      'Unaccented query with a toneless i/y syllable; English notes and other notes use the other spelling as a word.');
+  });
+  for (const check of later) check();
+
   for (const [phrase, expected] of checks) expectNotes(phrase, expected);
   // The folded query must also identify one note only, or the query would be ambiguous even for a perfect fold.
   for (const [term, rel] of foldChecks) {
@@ -509,12 +852,12 @@ export function build({ seed = 11, answersOut = options.answersOut.default } = {
     '# Từ điển của vault', '',
     'Từ điển mẫu cho bộ kiểm thử tiếng Việt. Mỗi dòng là một nhóm, các dạng nối bằng dấu bằng.', '',
     '## Đồng nghĩa', '', ...SYNONYM.map(([g]) => g), '',
-    '## Viết tắt', '', ...ABBR.map(([a, f]) => `${a} = ${f}`), '',
+    '## Viết tắt', '', ...ABBR.map(([a, f]) => `${a} = ${f}`), ...COMMON_ABBR.map(([a, f]) => `${a} = ${f}`), '',
     '## Từ ghép', '', ...compounds, '',
     '## Chờ duyệt', '', 'GD = giáo dục', '',
   ].join('\n'));
 
-  // Sanity: 17 categories x 15 queries, plus 15 harder vi-compound queries.
+  // Sanity: queries per category as queriesPer says.
   for (const c of categories) if (counts[c] !== queriesPer(c)) throw new Error(`vi-search: ${c} has ${counts[c]} queries, expected ${queriesPer(c)}`);
   if (golden.length !== categories.reduce((n, c) => n + queriesPer(c), 0)) throw new Error('vi-search: unexpected category in golden set');
 

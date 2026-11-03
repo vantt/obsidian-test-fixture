@@ -14,13 +14,14 @@ const make = (options = {}) => {
   return { out, golden: JSON.parse(fs.readFileSync(goldenFile, 'utf8')) };
 };
 
-test('golden set: 17 categories x 15 queries, vi-compound 30, eval format, unique ids', () => {
+test('golden set: 17 categories, 315 queries, eval format, unique ids', () => {
   const { golden } = make();
   assert.equal(categories.length, 17);
-  assert.equal(golden.length, 270);
-  assert.equal(new Set(golden.map((q) => q.id)).size, 270);
+  assert.equal(golden.length, 315);
+  assert.equal(new Set(golden.map((q) => q.id)).size, 315);
   for (const c of categories) assert.equal(golden.filter((q) => q.category === c).length, queriesPer(c), c);
-  assert.equal(queriesPer('vi-compound'), 30);
+  assert.equal(queriesPer('vi-compound'), 35);
+  assert.equal(queriesPer('vi-accented'), 35);
   for (const q of golden) {
     assert.deepEqual(Object.keys(q).slice(0, 6), ['id', 'query', 'relevant_paths', 'partial_paths', 'category', 'notes']);
     assert.ok(q.query.length > 0 && q.relevant_paths.length === 1, q.id);
@@ -84,4 +85,27 @@ test('harder vi-compound cases: compound once in the target, syllables reversed 
     if (q.hard === 'folded') assert.equal(q.query, strip(`${a} ${b}`));
     else assert.ok(q.query.endsWith(`${a} ${b}`), q.id);
   }
+});
+
+test('0.12.0 cases: five per cause, after the 0.11.0 entries, overview answers with a partial narrow note', () => {
+  const { out, golden } = make();
+  const tagged = golden.filter((q) => q.cause);
+  assert.equal(tagged.length, 45);
+  // the 270 entries of 0.11.0 come first, untagged
+  assert.ok(golden.slice(0, 270).every((q) => !q.cause));
+  const causes = {};
+  for (const q of tagged) causes[q.cause] = (causes[q.cause] ?? 0) + 1;
+  assert.deepEqual(Object.keys(causes).sort(), ['common-abbr', 'common-compound', 'few-unaccented-pairs', 'function-pairs', 'idea', 'iy-mixed', 'rare-identifier', 'title-phrase', 'toneless-iy']);
+  for (const n of Object.values(causes)) assert.equal(n, 5);
+  for (const q of tagged.filter((x) => x.cause === 'title-phrase')) {
+    assert.equal(q.partial_paths.length, 1);
+    assert.ok(q.partial_paths[0].toLowerCase().includes(q.query), q.id);
+    assert.ok(!q.relevant_paths[0].toLowerCase().includes(q.query), q.id);
+  }
+  for (const q of tagged.filter((x) => x.cause === 'few-unaccented-pairs')) {
+    const text = fs.readFileSync(path.join(out, q.relevant_paths[0]), 'utf8');
+    assert.equal(strip(text), text, q.id);
+  }
+  const lexicon = fs.readFileSync(path.join(out, '_ohs/lexicon.md'), 'utf8');
+  for (const q of tagged.filter((x) => x.cause === 'common-abbr')) assert.match(lexicon, new RegExp(`^${q.query.split(' ')[0]} = `, 'm'));
 });
